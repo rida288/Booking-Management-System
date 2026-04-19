@@ -1,0 +1,1 @@
+// roomtypes, roomtypeamenities, roomdefects
