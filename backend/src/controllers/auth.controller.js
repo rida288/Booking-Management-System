@@ -41,9 +41,19 @@ const login = async (req, res) => {
 
 const logout = async (req, res) => {
     try {
-        return sendSuccess(res, { message: 'Logged out successfully' }, 200);
-    }
-    catch (err) {
+        const authHeader = req.headers.authorization;
+
+        if (!authHeader || !authHeader.startsWith('Bearer ')) {
+            return sendError(res, 'No token provided', 400);
+        }
+
+        const token = authHeader.split(' ')[1];
+
+        const result = await authService.logout(token);
+
+        return sendSuccess(res, result, 200);
+
+    } catch (err) {
         return sendError(res, err.message, 400);
     }
 };
