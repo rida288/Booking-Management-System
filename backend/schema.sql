@@ -190,12 +190,12 @@ CREATE TABLE Bookings (
                                         ON DELETE NO ACTION ON UPDATE NO ACTION,
     CONSTRAINT FK_bookings_room_type    FOREIGN KEY (room_type_id) REFERENCES Room_Types (room_type_id)
                                         ON DELETE NO ACTION ON UPDATE NO ACTION,
-    CONSTRAINT FK_bookings_hotel        FOREIGN KEY (hotel_id) REFERENCES Hotels (hotel_id)
-                                        ON DELETE NO ACTION ON UPDATE NO ACTION,
+    --CONSTRAINT FK_bookings_hotel        FOREIGN KEY (hotel_id) REFERENCES Hotels (hotel_id)
+    --                                    ON DELETE NO ACTION ON UPDATE NO ACTION,
     CONSTRAINT CK_bookings_dates        CHECK (check_out_date > check_in_date),
     CONSTRAINT CK_bookings_num_guests   CHECK (num_guests > 0),
     CONSTRAINT CK_bookings_num_rooms    CHECK (num_rooms > 0),
-    CONSTRAINT CK_bookings_amount       CHECK (total_amount >= 0),
+    -- CONSTRAINT CK_bookings_amount       CHECK (total_amount >= 0),
     CONSTRAINT CK_bookings_discount     CHECK (discount_percent BETWEEN 0 AND 100),
     CONSTRAINT CK_bookings_status       CHECK (status IN ('PENDING', 'CONFIRMED', 'CANCELLED', 'COMPLETED', 'NO_SHOW'))
 );
@@ -247,8 +247,8 @@ CREATE TABLE Refunds (
     CONSTRAINT PK_refunds           PRIMARY KEY (refund_id),
     CONSTRAINT FK_refunds_payment   FOREIGN KEY (payment_id) REFERENCES Payments (payment_id)
                                     ON DELETE CASCADE ON UPDATE NO ACTION,
-    CONSTRAINT FK_refunds_booking   FOREIGN KEY (booking_id) REFERENCES Bookings (booking_id)
-                                    ON DELETE NO ACTION ON UPDATE NO ACTION,
+    --CONSTRAINT FK_refunds_booking   FOREIGN KEY (booking_id) REFERENCES Bookings (booking_id)
+    --                                ON DELETE NO ACTION ON UPDATE NO ACTION,
     CONSTRAINT FK_refunds_initiator FOREIGN KEY (initiated_by) REFERENCES Users (user_id)
                                     ON DELETE NO ACTION ON UPDATE NO ACTION,
     CONSTRAINT CK_refunds_amount    CHECK (refund_amount > 0),
@@ -265,7 +265,7 @@ CREATE TABLE Reviews (
     booking_id          UNIQUEIDENTIFIER    NOT NULL,
     -- guest_id            UNIQUEIDENTIFIER    NOT NULL, --> both can be determined via booking id 
     -- hotel_id            UNIQUEIDENTIFIER    NOT NULL,
-    room_type_id        UNIQUEIDENTIFIER    NULL,
+    -- room_type_id        UNIQUEIDENTIFIER    NULL, --> derivable via booking_id -> room_type_id
     overall_rating      DECIMAL(2, 1)       NOT NULL,
     title               VARCHAR(255)        NULL,
     body                VARCHAR(MAX)        NULL,
@@ -278,12 +278,12 @@ CREATE TABLE Reviews (
     CONSTRAINT UQ_reviews_booking       UNIQUE      (booking_id),
     CONSTRAINT FK_reviews_booking       FOREIGN KEY (booking_id) REFERENCES Bookings (booking_id)
                                         ON DELETE CASCADE ON UPDATE NO ACTION,
-    CONSTRAINT FK_reviews_guest         FOREIGN KEY (guest_id) REFERENCES Users (user_id)
-                                        ON DELETE NO ACTION ON UPDATE NO ACTION,
-    CONSTRAINT FK_reviews_hotel         FOREIGN KEY (hotel_id) REFERENCES Hotels (hotel_id)
-                                        ON DELETE NO ACTION ON UPDATE NO ACTION,
-    CONSTRAINT FK_reviews_room_type     FOREIGN KEY (room_type_id) REFERENCES Room_Types (room_type_id)
-                                        ON DELETE NO ACTION ON UPDATE NO ACTION,
+    --CONSTRAINT FK_reviews_guest         FOREIGN KEY (guest_id) REFERENCES Users (user_id)
+    --                                    ON DELETE NO ACTION ON UPDATE NO ACTION,
+    --CONSTRAINT FK_reviews_hotel         FOREIGN KEY (hotel_id) REFERENCES Hotels (hotel_id)
+    --                                    ON DELETE NO ACTION ON UPDATE NO ACTION,
+    -- CONSTRAINT FK_reviews_room_type     FOREIGN KEY (room_type_id) REFERENCES Room_Types (room_type_id)
+    --                                     ON DELETE NO ACTION ON UPDATE NO ACTION,
     CONSTRAINT CK_reviews_overall       CHECK (overall_rating BETWEEN 1.0 AND 5.0)
 );
 GO
@@ -388,10 +388,9 @@ CREATE TABLE Event_Booking_Occurrences (
 
     CONSTRAINT PK_occurrence PRIMARY KEY (occurrence_id),
     CONSTRAINT FK_occ_series FOREIGN KEY (series_id) REFERENCES Event_Booking_Series (series_id)
-                             ON DELETE CASCADE ON UPDATE NO ACTION,
-    CONSTRAINT FK_occ_space  FOREIGN KEY (event_space_id) REFERENCES Event_Spaces (event_space_id)
-                             ON DELETE NO ACTION ON UPDATE NO ACTION
+                             ON DELETE CASCADE ON UPDATE NO ACTION
+    -- CONSTRAINT FK_occ_space  FOREIGN KEY (event_space_id) REFERENCES Event_Spaces (event_space_id)
+    --                          ON DELETE NO ACTION ON UPDATE NO ACTION
 );
 GO
-
 
