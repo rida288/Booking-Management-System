@@ -22,7 +22,7 @@ const register = async (userData) => {
         passwordHash,
         fullName:     userData.fullName,
         phone:        userData.phone,
-        role:         userData.role || ROLES.GUEST
+        role:         (userData.role || 'GUEST').toUpperCase()
     });
 
     const token = generateToken(newUser);

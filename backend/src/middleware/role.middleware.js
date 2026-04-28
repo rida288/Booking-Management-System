@@ -1,16 +1,9 @@
-// require admin 
-
-// require user 
-
-
-// require host 
-
-
 // role based access control 
 
 const { ROLES }     = require('../utils/constants');
 const { sendError } = require('../utils/response.helper');
 
+// require user 
 const requireGuest = (req, res, next) => {
     if (req.user.role !== ROLES.GUEST) {
         return sendError(res, 'Access denied. Guests only.', 403);
@@ -18,6 +11,7 @@ const requireGuest = (req, res, next) => {
     next();
 };
 
+// require host
 const requireHost = (req, res, next) => {
     if (req.user.role !== ROLES.HOST) {
         return sendError(res, 'Access denied. Hosts only.', 403);
@@ -25,6 +19,7 @@ const requireHost = (req, res, next) => {
     next();
 };
 
+// require admin
 const requireAdmin = (req, res, next) => {
     if (req.user.role !== ROLES.ADMIN) {
         return sendError(res, 'Access denied. Admins only.', 403);

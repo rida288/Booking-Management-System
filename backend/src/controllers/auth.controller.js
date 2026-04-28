@@ -3,6 +3,7 @@ const authService                    = require('../services/auth.service');
 const { sendSuccess, sendError }     = require('../utils/response.helper');
 
 const register = async (req, res) => {
+    console.log("DEBUG 1: req.body is:", req.body); 
     try {
         const { email, password, fullName, phone, role } = req.body;
 
