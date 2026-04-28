@@ -119,3 +119,37 @@ BEGIN
 
 END;
 GO
+
+
+-- =============================================================================
+-- TRIGGER: trg_OccupancyDiscount
+-- =============================================================================
+CREATE OR ALTER TRIGGER trg_OccupancyDiscount
+ON Bookings
+AFTER INSERT
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    UPDATE b
+    SET
+        discount_percent = 10, -- set default 10 
+        updated_at       = SYSUTCDATETIME()
+    FROM Bookings b
+    JOIN inserted i ON i.booking_id = b.booking_id
+    WHERE b.discount_percent = 0  -- don't overwrite existing discount
+      AND (
+        SELECT SUM(b2.num_rooms) * 1.0 / NULLIF(SUM(rt.total_rooms), 0)
+        FROM Room_Types rt
+        LEFT JOIN Bookings b2 ON b2.room_type_id = rt.room_type_id -- left join since we want all rooms 
+            AND b2.status IN ('PENDING', 'CONFIRMED')
+            AND b2.booking_id <> i.booking_id  -- exclude the new booking
+            AND b2.check_in_date  < i.check_out_date
+            AND b2.check_out_date > i.check_in_date
+        WHERE rt.hotel_id = (
+            SELECT hotel_id FROM Room_Types WHERE room_type_id = i.room_type_id
+        )
+    ) < 0.90;
+
+END;
+GO
