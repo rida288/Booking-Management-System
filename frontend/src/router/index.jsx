@@ -5,6 +5,8 @@ import Home from '../pages/home';
 import BookingPage from '../pages/booking/booking';
 import BookingDetailPage from '../pages/booking/bookingdetail';
 import PaymentPage from '../pages/payment/payment';
+import MyReviewsPage from '../pages/review/reviews';
+import HostReviewsPage from '../pages/review/hostreviews';
 import { ROLES } from '../utils/constants';
 
 const Layout = ({ children }) => (
@@ -30,6 +32,8 @@ const router = createBrowserRouter([
   { path: '/bookings/:id', element: <ProtectedRoute roles={[ROLES.GUEST, ROLES.HOST, ROLES.ADMIN]}><BookingDetailPage /></ProtectedRoute> },
   { path: '/payments', element: <ProtectedRoute roles={[ROLES.GUEST, ROLES.HOST]}><PaymentPage /></ProtectedRoute> },
   { path: '*', element: <Navigate to="/" replace /> },
+  { path: '/reviews', element: <ProtectedRoute roles={[ROLES.GUEST]}><MyReviewsPage /></ProtectedRoute> },
+  { path: '/host/reviews', element: <ProtectedRoute roles={[ROLES.HOST]}><HostReviewsPage /></ProtectedRoute> },
 ]);
 
 const AppRouter = () => <RouterProvider router={router} />;
