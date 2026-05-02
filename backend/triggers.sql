@@ -153,3 +153,82 @@ BEGIN
 
 END;
 GO
+
+
+
+
+-- =============================================================================
+-- REVIEW TRIGGERS
+-- =============================================================================
+ 
+-- -----------------------------------------------------------------------------
+-- trg_ValidateReviewInsert
+-- blocks any review on a non-COMPLETED booking
+-- enforces the no-duplicate rule before the UQ constraint fires
+-- -----------------------------------------------------------------------------
+CREATE OR ALTER TRIGGER trg_ValidateReviewInsert
+ON Reviews
+INSTEAD OF INSERT
+AS
+BEGIN
+    SET NOCOUNT ON;
+ 
+    -- booking must be COMPLETED and belong to the correct guest
+    IF EXISTS (
+        SELECT 1
+        FROM   inserted i
+        LEFT JOIN Bookings b
+               ON b.booking_id = i.booking_id
+              AND b.status     = 'COMPLETED'
+        WHERE b.booking_id IS NULL
+    )
+    BEGIN
+        THROW 50014, 'Review rejected: booking is not completed or does not exist.', 1;
+        RETURN;
+    END
+ 
+    -- no duplicate review for the same booking
+    IF EXISTS (
+        SELECT 1
+        FROM   inserted i
+        JOIN   Reviews   r ON r.booking_id = i.booking_id
+    )
+    BEGIN
+        THROW 50015, 'Duplicate review: a review for this booking already exists.', 1;
+        RETURN;
+    END
+ 
+    -- perform the real insert
+    INSERT INTO Reviews
+        (review_id, booking_id, overall_rating, title, body, created_at, updated_at)
+    SELECT
+        review_id, booking_id, overall_rating, title, body, created_at, updated_at
+    FROM inserted;
+END;
+GO
+ 
+-- -----------------------------------------------------------------------------
+-- trg_UpdateReviewTimestamp
+-- keeps updated_at current on every content change.
+-- Short-circuits if only updated_at itself changed to avoid infinite loops.
+-- -----------------------------------------------------------------------------
+CREATE OR ALTER TRIGGER trg_UpdateReviewTimestamp
+ON Reviews
+AFTER UPDATE
+AS
+BEGIN
+    SET NOCOUNT ON;
+ 
+    IF UPDATE(updated_at)
+       AND NOT UPDATE(overall_rating)
+       AND NOT UPDATE(title)
+       AND NOT UPDATE(body)
+       AND NOT UPDATE(host_response)
+        RETURN;
+ 
+    UPDATE r
+    SET    updated_at = SYSUTCDATETIME()
+    FROM   Reviews  r
+    JOIN   inserted i ON i.review_id = r.review_id;
+END;
+GO

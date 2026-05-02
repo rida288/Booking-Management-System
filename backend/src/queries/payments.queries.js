@@ -30,7 +30,7 @@ const getPaymentStatusForGuest = async ({ bookingId, guestId }) => {
 };
 
 const getPaymentHistoryForGuest = async ({ guestId }) => {
-    const pool = await poolPromise;
+    const pool = await poolPromise; 
     const result = await pool.request()
         .input('guestId', sql.UniqueIdentifier, guestId)
         .execute('usp_GetPaymentHistory_Guest');

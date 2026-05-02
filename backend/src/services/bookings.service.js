@@ -59,6 +59,8 @@ const cancelBooking = async ({ bookingId, user, cancellationReason }) => {
         await bookingQueries.cancelBookingAsGuest(bookingId, user.userId, cancellationReason);
     } else if (user.role === ROLES.ADMIN) {
         await bookingQueries.cancelBookingAsAdmin(bookingId, cancellationReason);
+    } else if (user.role === ROLES.HOST) {
+        await bookingQueries.cancelBookingAsAdmin(bookingId, cancellationReason);
     } else {
         throw new Error('Only guests and admins can cancel bookings');
     }
@@ -72,7 +74,7 @@ const getBookingHistory = async ({ user, status }) => {
     }
 
     if (user.role === ROLES.HOST) {
-        return bookingQueries.getBookingHistoryByHost(user.userId);
+        return bookingQueries.getBookingHistoryByHost(user.userId, status || null);
     }
 
     throw new Error('Booking history is only available for guests and hosts');

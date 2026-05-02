@@ -394,3 +394,11 @@ CREATE TABLE Event_Booking_Occurrences (
 );
 GO
 
+-- -----------------------------------------------------------------------------
+-- Token Blacklist
+-- -----------------------------------------------------------------------------
+CREATE TABLE TokenBlacklist (
+    id          INT IDENTITY(1,1) PRIMARY KEY,
+    token       VARCHAR(MAX)  NOT NULL,
+    blacklisted_at DATETIME2 DEFAULT SYSUTCDATETIME()
+);
