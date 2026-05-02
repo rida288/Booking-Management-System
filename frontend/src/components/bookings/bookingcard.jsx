@@ -5,7 +5,7 @@ import { formatDate as fmtDate } from '../../utils/formatedate';
 
 const BookingCard = ({ booking, onCancel }) => {
   const { booking_id, hotel_name, room_type, type_name, check_in_date, check_out_date,
-    num_rooms, total_amount, status, discount_percent } = booking;
+    num_rooms, total_amount, status, discount_percent, cancellation_reason, cancelled_at } = booking;
 
   return (
     <div style={styles.card}>
@@ -20,6 +20,14 @@ const BookingCard = ({ booking, onCancel }) => {
         <span>📅 {fmtDate(check_in_date)} → {fmtDate(check_out_date)}</span>
         <span>🛏 {num_rooms} room(s)</span>
       </div>
+
+      {cancellation_reason && (
+        <div style={styles.cancelNote}>
+          <strong>Cancellation reason:</strong> {cancellation_reason}
+          {cancelled_at && ` · ${fmtDate(cancelled_at)}`}
+        </div>
+      )}
+
       <div style={styles.footer}>
         <span style={styles.amount}>
           ${Number(total_amount).toFixed(2)}
@@ -42,6 +50,7 @@ const styles = {
   hotel: { margin:'0 0 4px', fontSize:'16px', fontWeight:'700' },
   room: { color:'#666', margin:0, fontSize:'13px' },
   row: { display:'flex', gap:'24px', color:'#555', fontSize:'13px', marginBottom:'14px' },
+  cancelNote: { background:'#fff3cd', padding:'10px', borderRadius:'8px', fontSize:'13px', marginBottom:'12px' },
   footer: { display:'flex', justifyContent:'space-between', alignItems:'center' },
   amount: { fontWeight:'700', fontSize:'16px', color:'#1a1a2e' },
   disc: { color:'#28a745', fontWeight:'400', fontSize:'12px' },
