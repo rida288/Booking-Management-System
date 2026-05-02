@@ -15,3 +15,24 @@ const authRoutes = require('./routes/auth.routes');
 app.use('/api/auth', authRoutes);
 
 // ... rest of your app setup
+
+
+
+
+// Hotels , RoomType , Defects , Amenities routes 
+
+// Hotels 
+const hotelRoutes = require('./routes/hotels.routes');
+app.use('/api/hotels', hotelRoutes);
+
+// Rooms 
+const roomRoutes = require('./routes/rooms.routes');
+app.use('/api/rooms', roomRoutes);
+
+// Defects 
+const defectRoutes = require('./routes/defects.routes');
+app.use('/api/defects', defectRoutes);
+
+// Amenities
+const amenityRoutes = require('./routes/amenity.routes');
+app.use('/api/amenities', amenityRoutes);
