@@ -1187,3 +1187,196 @@ BEGIN
     ORDER BY avg_rating DESC;
 END;
 GO
+
+
+
+
+-- =============================================================================
+-- PAYMENT PROCEDURES
+-- =============================================================================
+
+CREATE OR ALTER PROCEDURE usp_ProcessPayment
+    @bookingId      UNIQUEIDENTIFIER,
+    @guestId        UNIQUEIDENTIFIER,
+    @amount         DECIMAL(12, 2),
+    @paymentMethod  NVARCHAR(20),
+    @gateway        NVARCHAR(50) = NULL
+AS
+BEGIN
+    SET NOCOUNT ON;
+    BEGIN TRY
+        BEGIN TRANSACTION;
+
+            INSERT INTO Payments
+                (booking_id, guest_id, payment_type, amount, payment_method, payment_gateway, status, initiated_at)
+            VALUES
+                (@bookingId, @guestId, 'CHARGE', @amount, @paymentMethod, @gateway, 'SUCCESSFUL', SYSUTCDATETIME());
+
+        COMMIT TRANSACTION;
+    END TRY
+    BEGIN CATCH
+        IF @@TRANCOUNT > 0 ROLLBACK TRANSACTION;
+        THROW;
+    END CATCH;
+END;
+GO
+
+CREATE OR ALTER PROCEDURE usp_UpdatePaymentStatus
+    @paymentId  UNIQUEIDENTIFIER,
+    @status     NVARCHAR(25)
+AS
+BEGIN
+    SET NOCOUNT ON;
+    BEGIN TRY
+        BEGIN TRANSACTION;
+
+            UPDATE Payments
+            SET status = @status, completed_at = SYSUTCDATETIME()
+            WHERE payment_id = @paymentId;
+
+            IF @@ROWCOUNT = 0
+                THROW 50003, 'Payment not found.', 1;
+
+        COMMIT TRANSACTION;
+    END TRY
+    BEGIN CATCH
+        IF @@TRANCOUNT > 0 ROLLBACK TRANSACTION;
+        THROW;
+    END CATCH;
+END;
+GO
+
+CREATE OR ALTER PROCEDURE usp_GetPaymentStatus_Guest
+    @bookingId  UNIQUEIDENTIFIER,
+    @guestId    UNIQUEIDENTIFIER
+AS
+BEGIN
+    SET NOCOUNT ON;
+    SELECT
+        p.payment_id, p.payment_type, p.amount, p.payment_method,
+        p.payment_gateway, p.status, p.initiated_at, p.completed_at
+    FROM Payments p
+    JOIN Bookings b ON b.booking_id = p.booking_id
+    WHERE p.guest_id   = @guestId
+      AND p.booking_id = @bookingId;
+END;
+GO
+
+CREATE OR ALTER PROCEDURE usp_GetFailedPayments_Admin
+AS
+BEGIN
+    SET NOCOUNT ON;
+    SELECT
+        p.payment_id, p.booking_id, u.full_name, u.email,
+        p.amount, p.payment_method, p.payment_gateway, p.status, p.initiated_at
+    FROM Payments p
+    JOIN Users u ON u.user_id = p.guest_id
+    WHERE p.status = 'FAILED'
+    ORDER BY p.initiated_at DESC;
+END;
+GO
+
+CREATE OR ALTER PROCEDURE usp_GetPaymentHistory_Guest
+    @guestId UNIQUEIDENTIFIER
+AS
+BEGIN
+    SET NOCOUNT ON;
+    SELECT
+        p.payment_id,
+        h.name          AS hotel_name,
+        b.check_in_date,
+        b.check_out_date,
+        p.payment_type,
+        p.amount,
+        p.payment_method,
+        p.payment_gateway,
+        p.status,
+        p.initiated_at,
+        p.completed_at
+    FROM Payments p
+    JOIN Bookings   b  ON b.booking_id    = p.booking_id
+    JOIN Room_Types rt ON rt.room_type_id = b.room_type_id
+    JOIN Hotels     h  ON h.hotel_id      = rt.hotel_id
+    WHERE p.guest_id = @guestId
+    ORDER BY p.initiated_at DESC;
+END;
+GO
+
+CREATE OR ALTER PROCEDURE usp_GetPaymentHistory_Host
+    @hostId UNIQUEIDENTIFIER
+AS
+BEGIN
+    SET NOCOUNT ON;
+    SELECT
+        p.payment_id,
+        p.booking_id,
+        u.full_name,
+        u.email,
+        p.amount,
+        p.payment_method,
+        p.payment_gateway,
+        p.status,
+        p.initiated_at
+    FROM Payments p
+    JOIN Bookings   b  ON b.booking_id    = p.booking_id
+    JOIN Room_Types rt ON rt.room_type_id = b.room_type_id
+    JOIN Hotels     h  ON h.hotel_id      = rt.hotel_id
+    JOIN Users      u  ON u.user_id       = p.guest_id
+    WHERE h.host_id = @hostId
+    ORDER BY p.initiated_at DESC;
+END;
+GO
+
+CREATE OR ALTER PROCEDURE usp_GetPaymentHistory_Admin
+AS
+BEGIN
+    SET NOCOUNT ON;
+    SELECT
+        p.payment_id,
+        p.booking_id,
+        u.full_name     AS guest_name,
+        h.name          AS hotel_name,
+        p.payment_type,
+        p.amount,
+        p.payment_method,
+        p.payment_gateway,
+        p.status        AS payment_status,
+        p.initiated_at,
+        p.completed_at,
+        r.refund_id,
+        r.refund_amount,
+        r.refund_reason,
+        r.status        AS refund_status,
+        r.completed_at  AS refund_completed_at
+    FROM Payments p
+    JOIN Bookings   b  ON b.booking_id    = p.booking_id
+    JOIN Room_Types rt ON rt.room_type_id = b.room_type_id
+    JOIN Hotels     h  ON h.hotel_id      = rt.hotel_id
+    JOIN Users      u  ON u.user_id       = p.guest_id
+    LEFT JOIN Refunds r ON r.payment_id   = p.payment_id
+    ORDER BY p.initiated_at DESC;
+END;
+GO
+
+CREATE OR ALTER PROCEDURE usp_GetAuditTrail
+    @bookingId UNIQUEIDENTIFIER
+AS
+BEGIN
+    SET NOCOUNT ON;
+    SELECT
+        p.payment_id, p.payment_type, p.amount, p.payment_method, p.payment_gateway,
+        p.status        AS payment_status,
+        p.initiated_at,
+        p.completed_at,
+        r.refund_id,
+        r.refund_amount,
+        r.refund_reason,
+        r.status        AS refund_status,
+        ri.full_name    AS refund_initiated_by
+    FROM Payments p
+    LEFT JOIN Refunds r  ON r.payment_id = p.payment_id
+    LEFT JOIN Users   ri ON ri.user_id   = r.initiated_by
+    WHERE p.booking_id = @bookingId
+    ORDER BY p.initiated_at ASC;
+END;
+GO
