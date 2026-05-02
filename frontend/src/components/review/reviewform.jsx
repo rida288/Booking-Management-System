@@ -10,7 +10,12 @@ const ReviewForm = ({ bookingId, hotelId, roomTypeId, onSuccess }) => {
     e.preventDefault();
     setLoading(true);
     try {
-      await createReview({ ...form, bookingId, hotelId, roomTypeId });
+      await createReview({ 
+        bookingId, 
+        overallRating: form.overall_rating,  // rename here
+        title: form.title, 
+        body: form.body 
+      });
       onSuccess?.();
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to submit review');
