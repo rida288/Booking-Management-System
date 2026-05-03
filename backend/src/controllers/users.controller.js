@@ -19,7 +19,19 @@ const updateProfile = async (req, res) => {
     try {
         const userId = req.user.userId;
 
-        const updatedUser = await userService.updateUserProfile(userId, req.body);
+        const {
+            fullName,
+            full_name,
+            phone,
+            phone_number
+        } = req.body;
+
+        const normalizedData = {
+            fullName: fullName || full_name,
+            phone: phone || phone_number
+        };
+
+        const updatedUser = await userService.updateUserProfile(userId, normalizedData);
 
         return sendSuccess(res, updatedUser, 200, 'Profile updated successfully');
 

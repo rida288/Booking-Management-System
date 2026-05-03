@@ -1,0 +1,6 @@
+PORT=5000
+DB_DATABASE=Booking_Management_System
+DB_USER=sa
+DB_PASSWORD=Admin@1234
+JWT_SECRET=booking_secret_2026
+JWT_EXPIRES_IN=1h

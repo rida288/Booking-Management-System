@@ -5,14 +5,29 @@ const { sendSuccess, sendError }     = require('../utils/response.helper');
 const register = async (req, res) => {
     console.log("DEBUG 1: req.body is:", req.body); 
     try {
-        const { email, password, fullName, phone, role } = req.body;
+        const {
+            email,
+            password,
+            fullName,
+            full_name,
+            phone,
+            phone_number,
+            role
+        } = req.body;
 
-        if (!email || !password || !fullName) {
+        const normalizedFullName = fullName || full_name;
+        const normalizedPhone = phone || phone_number;
+
+        if (!email || !password || !normalizedFullName) {
             return sendError(res, 'Email, password and full name are required', 400);
         }
 
         const result = await authService.register({ 
-            email, password, fullName, phone, role 
+            email,
+            password,
+            fullName: normalizedFullName,
+            phone: normalizedPhone,
+            role 
         });
 
         return sendSuccess(res, result, 201);

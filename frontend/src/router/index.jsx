@@ -1,10 +1,14 @@
-import { createBrowserRouter, RouterProvider, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import Navbar from '../components/shared/Navbar';
 import Home from '../pages/home';
 import BookingPage from '../pages/booking/booking';
 import BookingDetailPage from '../pages/booking/bookingdetail';
 import PaymentPage from '../pages/payment/payment';
+import LoginForm from '../pages/auth/login';
+import RegisterForm from '../pages/auth/RegisterForm';
+import Profile from '../pages/user/Profile';
+import HotelsPage from '../pages/hotel/hotels';
 import { ROLES } from '../utils/constants';
 
 const Layout = ({ children }) => (
@@ -23,14 +27,21 @@ const ProtectedRoute = ({ children, roles }) => {
 
 const PublicLayout = ({ children }) => <Layout>{children}</Layout>;
 
-const router = createBrowserRouter([
-  { path: '/', element: <PublicLayout><Home /></PublicLayout> },
-  { path: '/bookings', element: <ProtectedRoute roles={[ROLES.GUEST, ROLES.HOST]}><BookingPage /></ProtectedRoute> },
-  { path: '/bookings/history', element: <ProtectedRoute roles={[ROLES.GUEST, ROLES.HOST]}><BookingPage /></ProtectedRoute> },
-  { path: '/bookings/:id', element: <ProtectedRoute roles={[ROLES.GUEST, ROLES.HOST, ROLES.ADMIN]}><BookingDetailPage /></ProtectedRoute> },
-  { path: '/payments', element: <ProtectedRoute roles={[ROLES.GUEST, ROLES.HOST]}><PaymentPage /></ProtectedRoute> },
-  { path: '*', element: <Navigate to="/" replace /> },
-]);
+const AppRouter = () => (
+  <BrowserRouter>
+    <Routes>
+      <Route path="/" element={<PublicLayout><Home /></PublicLayout>} />
+      <Route path="/login" element={<PublicLayout><LoginForm /></PublicLayout>} />
+      <Route path="/register" element={<PublicLayout><RegisterForm /></PublicLayout>} />
+      <Route path="/profile" element={<ProtectedRoute roles={[ROLES.GUEST, ROLES.HOST, ROLES.ADMIN]}><Profile /></ProtectedRoute>} />
+      <Route path="/hotels" element={<PublicLayout><HotelsPage /></PublicLayout>} />
+      <Route path="/bookings" element={<ProtectedRoute roles={[ROLES.GUEST, ROLES.HOST]}><BookingPage /></ProtectedRoute>} />
+      <Route path="/bookings/history" element={<ProtectedRoute roles={[ROLES.GUEST, ROLES.HOST]}><BookingPage /></ProtectedRoute>} />
+      <Route path="/bookings/:id" element={<ProtectedRoute roles={[ROLES.GUEST, ROLES.HOST, ROLES.ADMIN]}><BookingDetailPage /></ProtectedRoute>} />
+      <Route path="/payments" element={<ProtectedRoute roles={[ROLES.GUEST, ROLES.HOST]}><PaymentPage /></ProtectedRoute>} />
+      <Route path="*" element={<Navigate to="/" replace />} />
+    </Routes>
+  </BrowserRouter>
+);
 
-const AppRouter = () => <RouterProvider router={router} />;
 export default AppRouter;
