@@ -1,7 +1,6 @@
-const sql = require('mssql')
-require("dotenv").config();
+const sql = require('mssql');
+require('dotenv').config();
 
-// configuration for sql server 
 const config = {
     server: process.env.DB_SERVER,
     database: process.env.DB_DATABASE,
@@ -10,13 +9,13 @@ const config = {
     connectionTimeout: 30000, // Wait 30 seconds for connection
     requestTimeout: 60000, // Wait 60 seconds for queries
     options: {
-        encrypt: false, 
-        enableArithAbort: true
-    }, 
+        encrypt: false,
+        trustServerCertificate: true,
+        enableArithAbort: true,
+    },
     port: parseInt(process.env.DB_PORT)
 };
 
-// create connection to export as a promise 
 const poolPromise = new sql.ConnectionPool(config)
     .connect()
     .then(pool => {
@@ -24,10 +23,8 @@ const poolPromise = new sql.ConnectionPool(config)
         return pool;
     })
     .catch(err => {
-        console.error('Database Connection Failed! Bad Config: ', err)
+        console.error('Database Connection Failed!', err);
         throw err;
     });
-
-module.exports = {
-    sql, poolPromise
-};
+console.log("Database:", config.database);
+module.exports = { sql, poolPromise };

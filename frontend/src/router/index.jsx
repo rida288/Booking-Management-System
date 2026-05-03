@@ -11,6 +11,8 @@ import ManageBookings from '../pages/admin/managebookings';
 import ManagePayments from '../pages/admin/managepayments';
 import ManageReviews from '../pages/admin/managereviews';
 import { ROLES } from '../utils/constants';
+import DefectsPage from '../pages/defect/defects';
+import HotelDetail from '../pages/hotel/hoteldetail';
 
 const Layout = ({ children }) => (
   <div style={{ minHeight:'100vh', background:'#f0f2f5' }}>
@@ -40,6 +42,9 @@ const router = createBrowserRouter([
   { path: '/admin/bookings', element: <ProtectedRoute roles={[ROLES.ADMIN]}><ManageBookings /></ProtectedRoute> },
   { path: '/admin/payments', element: <ProtectedRoute roles={[ROLES.ADMIN]}><ManagePayments /></ProtectedRoute> },
   { path: '/admin/reviews', element: <ProtectedRoute roles={[ROLES.ADMIN]}><ManageReviews /></ProtectedRoute> },
+  { path: '/hotels', element: <HotelList roles={[ROLES.GUEST, ROLES.HOST, ROLES.ADMIN]} /> },
+  { path: '/hotels/:id', element: <HotelDetail roles={[ROLES.GUEST, ROLES.HOST, ROLES.ADMIN]} /> },
+  { path: '/defects', element: <DefectsPage roles={[ROLES.GUEST, ROLES.HOST, ROLES.ADMIN]} /> }
 ]);
 
 const AppRouter = () => <RouterProvider router={router} />;
