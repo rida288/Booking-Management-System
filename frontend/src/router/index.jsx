@@ -8,7 +8,7 @@ import PaymentPage from '../pages/payment/payment';
 import LoginForm from '../pages/auth/login';
 import RegisterForm from '../pages/auth/RegisterForm';
 import Profile from '../pages/user/Profile';
-import HotelsPage from '../pages/hotel/hotels';
+import HotelList from '../pages/hotel/hotels';
 import MyReviewsPage from '../pages/review/reviews';
 import HostReviewsPage from '../pages/review/hostreviews';
 import ManageUsers from '../pages/admin/manageusers';
@@ -44,7 +44,6 @@ const AppRouter = () => (
       <Route path="/login" element={<PublicLayout><LoginForm /></PublicLayout>} />
       <Route path="/register" element={<PublicLayout><RegisterForm /></PublicLayout>} />
       <Route path="/profile" element={<ProtectedRoute roles={[ROLES.GUEST, ROLES.HOST, ROLES.ADMIN]}><Profile /></ProtectedRoute>} />
-      <Route path="/hotels" element={<PublicLayout><HotelsPage /></PublicLayout>} />
       <Route path="/bookings" element={<ProtectedRoute roles={[ROLES.GUEST, ROLES.HOST]}><BookingPage /></ProtectedRoute>} />
       <Route path="/bookings/history" element={<ProtectedRoute roles={[ROLES.GUEST, ROLES.HOST]}><BookingPage /></ProtectedRoute>} />
       <Route path="/bookings/:id" element={<ProtectedRoute roles={[ROLES.GUEST, ROLES.HOST, ROLES.ADMIN]}><BookingDetailPage /></ProtectedRoute>} />
@@ -56,7 +55,7 @@ const AppRouter = () => (
       <Route path="/admin/bookings" element={<ProtectedRoute roles={[ROLES.ADMIN]}><ManageBookings /></ProtectedRoute>} />
       <Route path="/admin/payments" element={<ProtectedRoute roles={[ROLES.ADMIN]}><ManagePayments /></ProtectedRoute>} />
       <Route path="/admin/reviews" element={<ProtectedRoute roles={[ROLES.ADMIN]}><ManageReviews /></ProtectedRoute>} />
-      <Route path="/hotels" element={<PublicLayout><HotelsPage /></PublicLayout>} />
+      <Route path="/hotels" element={<PublicLayout><HotelList /></PublicLayout>} />
       <Route path="/hotels/:id" element={<PublicLayout><HotelDetail /></PublicLayout>} />
       <Route path="/defects" element={<PublicLayout><DefectsPage /></PublicLayout>} />
       <Route path="/admin/dashboard" element={<ProtectedRoute roles={[ROLES.ADMIN]}><AdminDashboard /></ProtectedRoute>} />
