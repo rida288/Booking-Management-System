@@ -77,6 +77,9 @@ const getBookingHistory = async ({ user, status }) => {
         return bookingQueries.getBookingHistoryByHost(user.userId, status || null);
     }
 
+    if (user.role === ROLES.ADMIN) {
+        return bookingQueries.getBookingHistoryByAdmin(status || null);
+    }
     throw new Error('Booking history is only available for guests and hosts');
 };
 

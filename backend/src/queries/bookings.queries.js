@@ -107,6 +107,14 @@ const getBookingHistoryByHost = async (hostId, status = null) => {
     return result.recordset;
 };
 
+const getBookingHistoryByAdmin = async (status = null) => {
+    const pool = await poolPromise;
+    const result = await pool.request()
+        .input('status', sql.VarChar(15), status)
+        .execute('usp_GetBookingHistory_Admin');
+    return result.recordset;
+};
+
 const purgeOldBookings = async () => {
     const pool = await poolPromise;
     await pool.request().execute('usp_PurgeOldBookings');
@@ -123,5 +131,6 @@ module.exports = {
     cancelBookingAsAdmin,
     getBookingHistoryByGuest,
     getBookingHistoryByHost,
+    getBookingHistoryByAdmin,
     purgeOldBookings
 };

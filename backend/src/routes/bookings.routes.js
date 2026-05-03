@@ -8,7 +8,7 @@ const { ROLES } = require('../utils/constants');
 router.use(protect);
 
 // url -> middleware -> function 
-router.get('/history', requireAnyOf(ROLES.GUEST, ROLES.HOST), bookingsController.getBookingHistory);
+router.get('/history', requireAnyOf(ROLES.GUEST, ROLES.HOST, ROLES.ADMIN), bookingsController.getBookingHistory);
 router.post('/', requireGuest, bookingsController.createBooking);
 router.get('/:id', requireAnyOf(ROLES.GUEST, ROLES.HOST, ROLES.ADMIN), bookingsController.getBookingById);
 router.patch('/:id/confirm', requireAnyOf(ROLES.HOST, ROLES.ADMIN), bookingsController.confirmBooking);
