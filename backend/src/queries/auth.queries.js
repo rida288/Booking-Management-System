@@ -39,14 +39,6 @@ const createUser = async (userData) => {
 // 🚫 Add token to blacklist (logout)
 const blacklistToken = async (token, expiresAt) => {
     const pool = await poolPromise;
-    await pool.request().query(`
-        IF OBJECT_ID('TokenBlacklist') IS NULL
-        CREATE TABLE TokenBlacklist (
-            token VARCHAR(MAX) NOT NULL,
-            expires_at DATETIME2 NOT NULL
-        )
-    `);
-
     await pool.request()
         .input('token', sql.VarChar, token)
         .input('expiresAt', sql.DateTime2, expiresAt)
@@ -59,14 +51,6 @@ const blacklistToken = async (token, expiresAt) => {
 // 🔎 Check if token is blacklisted
 const isTokenBlacklisted = async (token) => {
     const pool = await poolPromise;
-    const tableCheck = await pool.request().query(`
-        SELECT OBJECT_ID('TokenBlacklist') AS table_id
-    `);
-
-    if (!tableCheck.recordset[0].table_id) {
-        return false;
-    }
-
     const result = await pool.request()
         .input('token', sql.VarChar, token)
         .query(`

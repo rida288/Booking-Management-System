@@ -16,9 +16,8 @@ const { ROLES } = require('../utils/constants');
 
 router.post('/', protect, requireAnyOf(ROLES.HOST, ROLES.ADMIN), roomController.createRoomType);
 router.get('/hotel/:hotelId', roomController.getRoomsByHotel);
-
-router.get('/:roomTypeId/availability', roomController.getRoomAvailability);
 router.get('/:roomTypeId', roomController.getRoomTypeById);
+router.get('/:roomTypeId/availability', roomController.getRoomAvailability);
 router.put('/:id', protect, requireAnyOf(ROLES.HOST, ROLES.ADMIN), roomController.updateRoomType);
 
 

@@ -8,9 +8,7 @@ const reportDefect = async (req, res) =>
 {
     try 
     {
-
-        const body = { ...req.body, roomTypeId: req.body.roomTypeId || req.body.room_type_id };
-        const result = await DefectService.reportDefect(req.user, body);
+        const result = await DefectService.reportDefect(req.user, req.body);
         return sendSuccess(res, result, 201);
     }
     catch(error)
@@ -48,11 +46,6 @@ const updateDefectStatus = async (req, res) =>
 {
     try 
     {
-   
-        if (!req.body.status) {
-            return sendError(res, 'status is required', 400);
-        }
-
         const result = await DefectService.updateDefectStatus(req.user, req.params.id, req.body.status);
         return sendSuccess(res, result);
     }

@@ -6,10 +6,10 @@
 -- DATABASE
 -- =============================================================================
 
-CREATE DATABASE Booking_Management_System_2;
+CREATE DATABASE Booking_Management_System;
 GO
 
-USE Booking_Management_System_2;
+USE Booking_Management_System;
 GO
 
 

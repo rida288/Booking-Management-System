@@ -629,7 +629,7 @@ GO
 
 
 -- checking room type availability 
-CREATE OR ALTER PROCEDURE usp_GetRoomAvaialbility
+CREATE OR ALTER PROCEDURE usp_GetRoomAvaialbility 
     @roomTypeId UNIQUEIDENTIFIER,
     @checkIn DATE,
     @checkOut DATE

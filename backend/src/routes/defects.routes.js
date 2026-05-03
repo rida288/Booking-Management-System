@@ -13,7 +13,6 @@ const Controller = require('../controllers/defects.controller');
 // Placeholder routes - implement your defect endpoints here
 router.post('/', protect, requireAnyOf(ROLES.HOST, ROLES.ADMIN), Controller.reportDefect);
 router.get('/active', protect, requireAnyOf(ROLES.HOST, ROLES.ADMIN), Controller.getActiveDefects);
-
-router.patch('/:id/status', protect, requireAnyOf(ROLES.HOST, ROLES.ADMIN), Controller.updateDefectStatus);
 router.get('/:defectId', protect, requireAnyOf(ROLES.HOST, ROLES.ADMIN), Controller.getRoomDefectById);
+router.patch('/:id/status', protect, requireAnyOf(ROLES.HOST, ROLES.ADMIN), Controller.updateDefectStatus);
 module.exports = router;

@@ -8,9 +8,7 @@ const createRoomType  = async (req , res ) =>
 {
     try 
     {
-
-      const body = { ...req.body, hotelId: req.body.hotelId || req.body.hotel_id };
-      const result = await RoomService.createRoomType(req.user, body);
+      const result = await RoomService.createRoomType(req.user, req.body);
       return sendSuccess(res, result,201);
     }
     catch(error)
@@ -62,11 +60,6 @@ const getRoomAvailability = async (req, res) =>
 {
     try 
     {
- 
-      if (!req.query.checkInDate || !req.query.checkOutDate) {
-        return sendError(res, 'checkInDate and checkOutDate are required', 400);
-      }
-
       const result = await RoomService.getRoomAvailability(req.params.roomTypeId, req.query.checkInDate, req.query.checkOutDate);
       return sendSuccess(res, result);
     }

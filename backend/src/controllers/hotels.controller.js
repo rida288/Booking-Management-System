@@ -61,7 +61,7 @@ const searchHotel = async (req, res) =>
 {
     try
     {
-        const hotel = await HotelService.searchHotel(req.query.searchQuery  || null);
+        const hotel = await HotelService.searchHotel(req.query.keyword);
         return sendSuccess(res, hotel);
     }
     catch(error)
