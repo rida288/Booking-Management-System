@@ -11,7 +11,7 @@
 --   → Event_Booking_Series → Event_Booking_Occurrences
 -- =============================================================
 
-USE Booking_Management_System;
+USE Booking_Management_System_2;
 GO
 
 -- =============================================================

@@ -2,7 +2,7 @@
 //    GET    /hotels
 //    GET    /hotels/:id
 //    PUT    /hotels/:id
-//     DELETE /hotels/:ids
+//     DELETE /hotels/:id
 
 const express = require('express');
 const router = express.Router();
