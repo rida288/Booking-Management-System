@@ -668,7 +668,7 @@ GO
 
 
 -- checking room type availability 
-CREATE OR ALTER PROCEDURE usp_GetRoomAvaialbility 
+CREATE OR ALTER PROCEDURE usp_GetRoomAvailability 
     @roomTypeId UNIQUEIDENTIFIER,
     @checkIn DATE,
     @checkOut DATE
@@ -1438,5 +1438,186 @@ BEGIN
     LEFT JOIN Users   ri ON ri.user_id   = r.initiated_by
     WHERE p.booking_id = @bookingId
     ORDER BY p.initiated_at ASC;
+END;
+GO
+
+
+
+-- Amenities
+
+--getting all amenities 
+CREATE OR ALTER PROCEDURE usp_GetAllAmenities
+AS
+BEGIN 
+    SET NOCOUNT ON ;
+    SELECT * 
+    FROM Amenity ;
+END;
+GO
+
+
+
+-- creating an amenity
+CREATE OR ALTER PROCEDURE usp_CreateAmenity
+    @name VARCHAR(100),
+    @description VARCHAR(MAX) = NULL
+AS 
+BEGIN 
+    SET NOCOUNT ON ;
+    BEGIN TRY 
+        BEGIN TRANSACTION;
+
+            INSERT INTO Amenity
+                (name, description)
+            VALUES
+                (@name, @description);
+
+        COMMIT TRANSACTION;
+    END TRY
+    BEGIN CATCH
+        IF @@TRANCOUNT > 0 
+        ROLLBACK TRANSACTION;
+        THROW;
+    END CATCH;
+END;
+GO
+
+
+
+
+-- getting amenity by amenity id
+CREATE OR ALTER PROCEDURE usp_GetAmenityById
+    @amenityId UNIQUEIDENTIFIER
+AS
+BEGIN 
+    SET NOCOUNT ON ;
+    SELECT * 
+    FROM Amenity 
+    WHERE amenity_id = @amenityId ;
+END;
+GO
+
+-- getting amenities by hotel id
+CREATE OR ALTER PROCEDURE usp_GetAmenitiesByHotelId
+    @hotelId UNIQUEIDENTIFIER  
+AS 
+BEGIN 
+    SET NOCOUNT ON ;
+    SELECT a.amenity_id, a.name, a.description
+    FROM Amenity a
+    JOIN Hotel_Amenities ha ON ha.amenity_id = a.amenity_id
+    WHERE ha.hotel_id = @hotelId ;
+END;
+GO
+
+-- getting amenities by room type id 
+CREATE OR ALTER PROCEDURE usp_GetAmenitiesByRoomTypeId
+    @roomTypeId UNIQUEIDENTIFIER
+AS 
+BEGIN 
+    SET NOCOUNT ON ;
+    SELECT a.amenity_id, a.name, a.description
+    FROM Amenity a
+    JOIN RoomType_Amenities rta ON rta.amenity_id = a.amenity_id
+    WHERE rta.room_type_id = @roomTypeId ;
+END;
+GO 
+
+-- adding an amenity to a hotel
+CREATE OR ALTER PROCEDURE usp_AddAmenityToHotel
+    @hotelId UNIQUEIDENTIFIER,
+    @amenityId UNIQUEIDENTIFIER
+
+AS 
+BEGIN 
+    SET NOCOUNT ON ;
+    BEGIN TRY 
+        BEGIN TRANSACTION;
+
+            INSERT INTO Hotel_Amenities
+                (hotel_id, amenity_id)
+            VALUES
+                (@hotelId, @amenityId);
+
+        COMMIT TRANSACTION;
+    END TRY
+    BEGIN CATCH
+        IF @@TRANCOUNT > 0 
+        ROLLBACK TRANSACTION;
+        THROW;
+    END CATCH;
+END;
+GO
+
+
+-- adding an amenity to a room type
+CREATE OR ALTER PROCEDURE usp_AddAmenityToRoomType
+    @roomTypeId UNIQUEIDENTIFIER,
+    @amenityId UNIQUEIDENTIFIER
+AS 
+BEGIN 
+    SET NOCOUNT ON ;
+    BEGIN TRY 
+        BEGIN TRANSACTION;
+
+            INSERT INTO RoomType_Amenities
+                (room_type_id, amenity_id)
+            VALUES
+                (@roomTypeId, @amenityId);
+
+        COMMIT TRANSACTION;
+    END TRY
+    BEGIN CATCH
+        IF @@TRANCOUNT > 0 
+        ROLLBACK TRANSACTION;
+        THROW;
+    END CATCH;
+END;
+GO
+
+
+-- removing an amenity from a hotel
+CREATE OR ALTER PROCEDURE usp_RemoveAmenityFromHotel
+    @hotelId UNIQUEIDENTIFIER,
+    @amenityId UNIQUEIDENTIFIER
+AS
+BEGIN
+    SET NOCOUNT ON;
+    BEGIN TRY
+        BEGIN TRANSACTION;
+
+            DELETE FROM Hotel_Amenities
+            WHERE hotel_id = @hotelId AND amenity_id = @amenityId;
+
+        COMMIT TRANSACTION;
+    END TRY
+    BEGIN CATCH
+        IF @@TRANCOUNT > 0
+        ROLLBACK TRANSACTION;
+        THROW;
+    END CATCH;
+END;
+GO
+
+-- removing an amenity from a room type
+CREATE OR ALTER PROCEDURE usp_RemoveAmenityFromRoomType
+    @roomTypeId UNIQUEIDENTIFIER,
+    @amenityId UNIQUEIDENTIFIER
+AS
+BEGIN
+    SET NOCOUNT ON;
+    BEGIN TRY
+        BEGIN TRANSACTION;
+
+            DELETE FROM RoomType_Amenities
+            WHERE room_type_id = @roomTypeId AND amenity_id = @amenityId;
+
+        COMMIT TRANSACTION;
+    END TRY
+    BEGIN CATCH
+        IF @@TRANCOUNT > 0
+        ROLLBACK TRANSACTION;
+        THROW;
+    END CATCH;
 END;
 GO
