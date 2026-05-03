@@ -108,7 +108,8 @@ async function getAllReviews(req, res) {
 async function getTopRatedHotels(req, res) {
     try {
         const limit = parseInt(req.params.limit, 10) || 10;
-        const hotels = await reviewService.getTopRatedHotels(5, limit);
+        const minReviews = parseInt(req.query.minReviews, 10) || 1;
+        const hotels = await reviewService.getTopRatedHotels(minReviews, limit);
         return sendSuccess(res, hotels);
     } catch (err) {
         return handleError(res, err);
