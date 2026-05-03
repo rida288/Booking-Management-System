@@ -2,10 +2,12 @@ const sql = require('mssql');
 require('dotenv').config();
 
 const config = {
-    server: "localhost\\SQLEXPRESS",
+    server: process.env.DB_SERVER,
     database: process.env.DB_DATABASE,
     user: process.env.DB_USER,
     password: process.env.DB_PASSWORD,
+    connectionTimeout: 30000, // Wait 30 seconds for connection
+    requestTimeout: 60000, // Wait 60 seconds for queries
     options: {
         encrypt: false,
         trustServerCertificate: true,

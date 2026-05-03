@@ -1,17 +1,13 @@
 const hotelQueries = require('../queries/hotels.queries');
 const { ROLES } = require('../utils/constants');
 
-
-const createHotel = async (user, data) =>
-{
+const createHotel = async (user, data) => {
     let hostId;
-
-    // Admin creating hotel for a host
-    if (user.role === ROLES.ADMIN && data.hostId)
-    { hostId = data.hostId; }
-    // host creating hotel for himself
-    else 
-    { hostId = user.userId; }
+    if (user.role === ROLES.ADMIN && data.hostId) {
+        hostId = data.hostId;
+    } else {
+        hostId = user.userId;
+    }
 
     return hotelQueries.createHotel({
         hostId,
@@ -28,53 +24,30 @@ const createHotel = async (user, data) =>
     });
 };
 
-
-const updateHotel = async (user, hotelId, data) =>
-{
+const updateHotel = async (user, hotelId, data) => {
     const hotel = await hotelQueries.getHotelById(hotelId);
-    if (!hotel)
-    {
-        throw new Error('Hotel not found');
-    }
-    if (user.role !== ROLES.ADMIN && hotel.host_id !== user.userId) 
-    {
+    if (!hotel) throw new Error('Hotel not found');
+    if (user.role !== ROLES.ADMIN && hotel.host_id !== user.userId)
         throw new Error('Unauthorized to update this hotel');
-    }
     return hotelQueries.updateHotel(hotelId, data);
 };
 
-
-
-const deleteHotel = async (user , hotelId ) =>
-{
+const deleteHotel = async (user, hotelId) => {
     const hotel = await hotelQueries.getHotelById(hotelId);
-    if (!hotel) 
-    {
-        throw new Error('Hotel not found');
-    }
-    if (user.role !== ROLES.ADMIN && hotel.host_id !== user.userId) 
-    {
+    if (!hotel) throw new Error('Hotel not found');
+    if (user.role !== ROLES.ADMIN && hotel.host_id !== user.userId)
         throw new Error('Unauthorized to delete this hotel');
-    }
-
     await hotelQueries.deleteHotel(hotelId);
     return { message: 'Hotel deleted successfully' };
 };
 
-
-const getHotelById = async (hotelId) =>
-{
+const getHotelById = async (hotelId) => {
     const hotel = await hotelQueries.getHotelById(hotelId);
-    if (!hotel) 
-    {
-        throw new Error('Hotel not found');
-    }
-    return hotel; 
-    
+    if (!hotel) throw new Error('Hotel not found');
+    return hotel;
 };
 
-const searchHotel = async (filters) =>
-{
+const searchHotel = async (filters) => {
     return hotelQueries.searchHotel(filters);
 };
 

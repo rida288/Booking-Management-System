@@ -31,6 +31,14 @@ BEGIN
             IF @@ROWCOUNT = 0
                 THROW 50001, 'Room type is unavailable or does not exist.', 1;
 
+            UPDATE Room_Types
+            SET total_rooms = total_rooms - @numRooms
+            WHERE room_type_id = @roomTypeId
+            AND total_rooms   >= @numRooms;
+
+            IF @@ROWCOUNT = 0
+                THROW 50006, 'Insufficient rooms available for the requested quantity.', 1;
+
         COMMIT TRANSACTION;
     END TRY
     BEGIN CATCH
@@ -1455,35 +1463,6 @@ BEGIN
 END;
 GO
 
-
-
--- creating an amenity
-CREATE OR ALTER PROCEDURE usp_CreateAmenity
-    @name VARCHAR(100),
-    @description VARCHAR(MAX) = NULL
-AS 
-BEGIN 
-    SET NOCOUNT ON ;
-    BEGIN TRY 
-        BEGIN TRANSACTION;
-
-         INSERT INTO Amenity (amenity_id, name, description)
-         VALUES (NEWSEQUENTIALID(), @name, @description);
-
-
-        COMMIT TRANSACTION;
-    END TRY
-    BEGIN CATCH
-        IF @@TRANCOUNT > 0 
-        ROLLBACK TRANSACTION;
-        THROW;
-    END CATCH;
-END;
-GO
-
-
-
-
 -- getting amenity by amenity id
 CREATE OR ALTER PROCEDURE usp_GetAmenityById
     @amenityId UNIQUEIDENTIFIER
@@ -1496,31 +1475,50 @@ BEGIN
 END;
 GO
 
--- getting amenities by hotel id
+CREATE OR ALTER PROCEDURE usp_CreateAmenity
+    @name VARCHAR(100)
+AS 
+BEGIN 
+    SET NOCOUNT ON;
+    BEGIN TRY 
+        BEGIN TRANSACTION;
+
+        INSERT INTO Amenity (amenity_id, name)
+        VALUES (NEWID(), @name);
+
+        COMMIT TRANSACTION;
+    END TRY
+    BEGIN CATCH
+        IF @@TRANCOUNT > 0 
+        ROLLBACK TRANSACTION;
+        THROW;
+    END CATCH;
+END;
+GO
+
 CREATE OR ALTER PROCEDURE usp_GetAmenitiesByHotelId
     @hotelId UNIQUEIDENTIFIER  
 AS 
 BEGIN 
-    SET NOCOUNT ON ;
-    SELECT a.amenity_id, a.name, a.description
+    SET NOCOUNT ON;
+    SELECT a.amenity_id, a.name
     FROM Amenity a
     JOIN Hotel_Amenities ha ON ha.amenity_id = a.amenity_id
-    WHERE ha.hotel_id = @hotelId ;
+    WHERE ha.hotel_id = @hotelId;
 END;
 GO
 
--- getting amenities by room type id 
 CREATE OR ALTER PROCEDURE usp_GetAmenitiesByRoomTypeId
     @roomTypeId UNIQUEIDENTIFIER
 AS 
 BEGIN 
-    SET NOCOUNT ON ;
-    SELECT a.amenity_id, a.name, a.description
+    SET NOCOUNT ON;
+    SELECT a.amenity_id, a.name
     FROM Amenity a
     JOIN Room_Type_Amenities rta ON rta.amenity_id = a.amenity_id
-    WHERE rta.room_type_id = @roomTypeId ;
+    WHERE rta.room_type_id = @roomTypeId;
 END;
-GO 
+GO
 
 -- adding an amenity to a hotel
 CREATE OR ALTER PROCEDURE usp_AddAmenityToHotel
