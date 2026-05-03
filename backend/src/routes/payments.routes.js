@@ -15,4 +15,5 @@ router.get('/audit/:bookingId',requireAdmin,paymentsController.getAuditTrail);
 router.get('/:bookingId', requireGuest, paymentsController.getPaymentStatus);
 router.patch('/:paymentId/status', requireAdmin, paymentsController.updatePaymentStatus);
 
+
 module.exports = router;
