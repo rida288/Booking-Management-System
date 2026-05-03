@@ -120,6 +120,38 @@ BEGIN
 END;
 GO
 
+-- =============================================================================
+-- TRIGGER: trg_SyncRefundStatus
+-- =============================================================================
+CREATE OR ALTER TRIGGER trg_SyncRefundStatus
+ON Payments
+AFTER UPDATE
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    -- Only fire when status changes to REFUNDED on a REFUND payment type
+    IF NOT EXISTS (
+        SELECT 1 FROM inserted i
+        JOIN deleted d ON i.payment_id = d.payment_id
+        WHERE i.payment_type = 'REFUND'
+          AND i.status = 'REFUNDED'
+          AND d.status <> 'REFUNDED'
+    )
+    RETURN;
+
+    UPDATE r
+    SET status = 'COMPLETED',
+        completed_at = SYSUTCDATETIME()
+    FROM Refunds r
+    JOIN inserted i ON i.payment_id = r.payment_id
+    JOIN deleted  d ON i.payment_id = d.payment_id
+    WHERE i.payment_type = 'REFUND'
+      AND i.status = 'REFUNDED'
+      AND d.status <> 'REFUNDED';
+END;
+GO
+
 
 -- =============================================================================
 -- TRIGGER: trg_OccupancyDiscount
