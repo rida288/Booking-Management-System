@@ -396,9 +396,15 @@ GO
 
 -- -----------------------------------------------------------------------------
 -- Token Blacklist
+-- Stores JWTs after logout until their natural expiry time.
 -- -----------------------------------------------------------------------------
 CREATE TABLE TokenBlacklist (
-    id          INT IDENTITY(1,1) PRIMARY KEY,
-    token       VARCHAR(MAX)  NOT NULL,
-    blacklisted_at DATETIME2 DEFAULT SYSUTCDATETIME()
+    blacklist_id   INT             NOT NULL    IDENTITY(1,1),
+    token          VARCHAR(MAX)    NOT NULL,
+    expires_at     DATETIME2       NOT NULL,
+    blacklisted_at DATETIME2       NOT NULL    DEFAULT SYSUTCDATETIME(),
+
+    CONSTRAINT PK_token_blacklist PRIMARY KEY (blacklist_id),
+    CONSTRAINT CK_token_blacklist_expiry CHECK (expires_at > blacklisted_at)
 );
+GO

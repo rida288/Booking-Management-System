@@ -42,14 +42,14 @@ const Navbar = () => {
 
             {user?.role === ROLES.ADMIN && (
               <>
-                <Link to="/admin" style={styles.link}>Admin</Link>
+                <Link to="/admin/users" style={styles.link}>Manage Users</Link>
                 <Link to="/admin/payments" style={styles.link}>Manage Payments</Link>
                 <Link to="/admin/bookings" style={styles.link}>Manage Bookings</Link>
                 <Link to="/admin/reviews" style={styles.link}>Manage Reviews</Link>
               </>
             )}
 
-            <Link to="/profile" style={styles.link}>{user?.name || user?.full_name || 'Profile'}</Link>
+            <Link to="/profile" style={styles.link}>{user?.name || user?.fullName || user?.full_name || 'Profile'}</Link>
             <button onClick={handleLogout} style={styles.btn}>Logout</button>
           </>
         )}

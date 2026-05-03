@@ -25,7 +25,7 @@ VALUES
 (
     'A0000000-0000-0000-0000-000000000001',
     'admin@hotelsys.com',
-    '$2b$12$adminHashedPassword001',
+    '$2b$10$7ax/G0cp9WOgNWxYVveZSed1VojJewqh3/xP0nohm40nGp8vQMcL2',
     'System Administrator',
     '+10000000001',
     'ADMIN',
@@ -36,7 +36,7 @@ VALUES
 (
     'B0000000-0000-0000-0000-000000000001',
     'john.host@resorts.com',
-    '$2b$12$hostHashedPassword001',
+    '$2b$10$7ax/G0cp9WOgNWxYVveZSed1VojJewqh3/xP0nohm40nGp8vQMcL2',
     'John Mercer',
     '+10000000002',
     'HOST',
@@ -45,7 +45,7 @@ VALUES
 (
     'B0000000-0000-0000-0000-000000000002',
     'sara.host@hotels.com',
-    '$2b$12$hostHashedPassword002',
+    '$2b$10$7ax/G0cp9WOgNWxYVveZSed1VojJewqh3/xP0nohm40nGp8vQMcL2',
     'Sara Khan',
     '+10000000003',
     'HOST',
@@ -54,7 +54,7 @@ VALUES
 (
     'B0000000-0000-0000-0000-000000000003',
     'carlos.host@stays.com',
-    '$2b$12$hostHashedPassword003',
+    '$2b$10$7ax/G0cp9WOgNWxYVveZSed1VojJewqh3/xP0nohm40nGp8vQMcL2',
     'Carlos Rivera',
     '+10000000004',
     'HOST',
@@ -65,7 +65,7 @@ VALUES
 (
     'C0000000-0000-0000-0000-000000000001',
     'alice.guest@gmail.com',
-    '$2b$12$guestHashedPassword001',
+    '$2b$10$7ax/G0cp9WOgNWxYVveZSed1VojJewqh3/xP0nohm40nGp8vQMcL2',
     'Alice Thompson',
     '+10000000005',
     'GUEST',
@@ -74,7 +74,7 @@ VALUES
 (
     'C0000000-0000-0000-0000-000000000002',
     'bob.guest@gmail.com',
-    '$2b$12$guestHashedPassword002',
+    '$2b$10$7ax/G0cp9WOgNWxYVveZSed1VojJewqh3/xP0nohm40nGp8vQMcL2',
     'Bob Williams',
     '+10000000006',
     'GUEST',
@@ -83,7 +83,7 @@ VALUES
 (
     'C0000000-0000-0000-0000-000000000003',
     'charlie.guest@gmail.com',
-    '$2b$12$guestHashedPassword003',
+    '$2b$10$7ax/G0cp9WOgNWxYVveZSed1VojJewqh3/xP0nohm40nGp8vQMcL2',
     'Charlie Davis',
     '+10000000007',
     'GUEST',
@@ -92,7 +92,7 @@ VALUES
 (
     'C0000000-0000-0000-0000-000000000004',
     'diana.guest@gmail.com',
-    '$2b$12$guestHashedPassword004',
+    '$2b$10$7ax/G0cp9WOgNWxYVveZSed1VojJewqh3/xP0nohm40nGp8vQMcL2',
     'Diana Patel',
     '+10000000008',
     'GUEST',
@@ -101,7 +101,7 @@ VALUES
 (
     'C0000000-0000-0000-0000-000000000005',
     'ethan.guest@gmail.com',
-    '$2b$12$guestHashedPassword005',
+    '$2b$10$7ax/G0cp9WOgNWxYVveZSed1VojJewqh3/xP0nohm40nGp8vQMcL2',
     'Ethan Nguyen',
     '+10000000009',
     'GUEST',
@@ -110,7 +110,7 @@ VALUES
 (
     'C0000000-0000-0000-0000-000000000006',
     'fatima.guest@gmail.com',
-    '$2b$12$guestHashedPassword006',
+    '$2b$10$7ax/G0cp9WOgNWxYVveZSed1VojJewqh3/xP0nohm40nGp8vQMcL2',
     'Fatima Malik',
     '+10000000010',
     'GUEST',
