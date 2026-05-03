@@ -7,3 +7,6 @@ export const getMyPropertyReviews = (hotelId = null) =>
   api.get(hotelId ? `/reviews/my-properties/${hotelId}` : '/reviews/my-properties');
 export const respondToReview = (reviewId, hostResponse) => 
   api.patch(`/reviews/${reviewId}/respond`, { hostResponse });
+export const getAllReviewsAdmin = () => api.get('/reviews/admin/all');
+export const getTopRatedHotels = () => api.get('/reviews/analytics/top-hotels');
+export const deleteReview = (reviewId) => api.delete(`/reviews/${reviewId}`);
