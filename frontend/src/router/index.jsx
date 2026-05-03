@@ -35,24 +35,6 @@ const ProtectedRoute = ({ children, roles }) => {
 
 const PublicLayout = ({ children }) => <Layout>{children}</Layout>;
 
-<<<<<<< HEAD
-const router = createBrowserRouter([
-  { path: '/', element: <PublicLayout><Home /></PublicLayout> },
-  { path: '/bookings', element: <ProtectedRoute roles={[ROLES.GUEST, ROLES.HOST]}><BookingPage /></ProtectedRoute> },
-  { path: '/bookings/history', element: <ProtectedRoute roles={[ROLES.GUEST, ROLES.HOST]}><BookingPage /></ProtectedRoute> },
-  { path: '/bookings/:id', element: <ProtectedRoute roles={[ROLES.GUEST, ROLES.HOST, ROLES.ADMIN]}><BookingDetailPage /></ProtectedRoute> },
-  { path: '/payments', element: <ProtectedRoute roles={[ROLES.GUEST, ROLES.HOST]}><PaymentPage /></ProtectedRoute> },
-  { path: '*', element: <Navigate to="/" replace /> },
-  { path: '/reviews', element: <ProtectedRoute roles={[ROLES.GUEST]}><MyReviewsPage /></ProtectedRoute> },
-  { path: '/host/reviews', element: <ProtectedRoute roles={[ROLES.HOST]}><HostReviewsPage /></ProtectedRoute> },
-  { path: '/admin/bookings', element: <ProtectedRoute roles={[ROLES.ADMIN]}><ManageBookings /></ProtectedRoute> },
-  { path: '/admin/payments', element: <ProtectedRoute roles={[ROLES.ADMIN]}><ManagePayments /></ProtectedRoute> },
-  { path: '/admin/reviews', element: <ProtectedRoute roles={[ROLES.ADMIN]}><ManageReviews /></ProtectedRoute> },
-  { path: '/hotels', element: <HotelList roles={[ROLES.GUEST, ROLES.HOST, ROLES.ADMIN]} /> },
-  { path: '/hotels/:id', element: <HotelDetail roles={[ROLES.GUEST, ROLES.HOST, ROLES.ADMIN]} /> },
-  { path: '/defects', element: <DefectsPage roles={[ROLES.GUEST, ROLES.HOST, ROLES.ADMIN]} /> }
-]);
-=======
 const AppRouter = () => (
   <BrowserRouter>
     <Routes>
@@ -72,10 +54,12 @@ const AppRouter = () => (
       <Route path="/admin/bookings" element={<ProtectedRoute roles={[ROLES.ADMIN]}><ManageBookings /></ProtectedRoute>} />
       <Route path="/admin/payments" element={<ProtectedRoute roles={[ROLES.ADMIN]}><ManagePayments /></ProtectedRoute>} />
       <Route path="/admin/reviews" element={<ProtectedRoute roles={[ROLES.ADMIN]}><ManageReviews /></ProtectedRoute>} />
+      <Route path="/hotels" element={<PublicLayout><HotelsPage /></PublicLayout>} />
+      <Route path="/hotels/:id" element={<PublicLayout><HotelDetail /></PublicLayout>} />
+      <Route path="/defects" element={<PublicLayout><DefectsPage /></PublicLayout>} />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   </BrowserRouter>
 );
->>>>>>> 10c20ea38f840e4338aa18e407e78815194a32a5
 
 export default AppRouter;
