@@ -15,6 +15,8 @@ import ManageUsers from '../pages/admin/manageusers';
 import ManageBookings from '../pages/admin/managebookings';
 import ManagePayments from '../pages/admin/managepayments';
 import ManageReviews from '../pages/admin/managereviews';
+import AdminDashboard from '../pages/dashboard/admindashboard';
+import HostDashboard from '../pages/dashboard/hostdashboard';
 import { ROLES } from '../utils/constants';
 import DefectsPage from '../pages/defect/defects';
 import HotelDetail from '../pages/hotel/hoteldetail';
@@ -57,6 +59,8 @@ const AppRouter = () => (
       <Route path="/hotels" element={<PublicLayout><HotelsPage /></PublicLayout>} />
       <Route path="/hotels/:id" element={<PublicLayout><HotelDetail /></PublicLayout>} />
       <Route path="/defects" element={<PublicLayout><DefectsPage /></PublicLayout>} />
+      <Route path="/admin/dashboard" element={<ProtectedRoute roles={[ROLES.ADMIN]}><AdminDashboard /></ProtectedRoute>} />
+      <Route path="/host/dashboard" element={<ProtectedRoute roles={[ROLES.HOST]}><HostDashboard /></ProtectedRoute>} />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   </BrowserRouter>
