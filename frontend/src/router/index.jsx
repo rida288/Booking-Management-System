@@ -7,6 +7,9 @@ import BookingDetailPage from '../pages/booking/bookingdetail';
 import PaymentPage from '../pages/payment/payment';
 import MyReviewsPage from '../pages/review/reviews';
 import HostReviewsPage from '../pages/review/hostreviews';
+import ManageBookings from '../pages/admin/managebookings';
+import ManagePayments from '../pages/admin/managepayments';
+import ManageReviews from '../pages/admin/managereviews';
 import { ROLES } from '../utils/constants';
 
 const Layout = ({ children }) => (
@@ -34,6 +37,9 @@ const router = createBrowserRouter([
   { path: '*', element: <Navigate to="/" replace /> },
   { path: '/reviews', element: <ProtectedRoute roles={[ROLES.GUEST]}><MyReviewsPage /></ProtectedRoute> },
   { path: '/host/reviews', element: <ProtectedRoute roles={[ROLES.HOST]}><HostReviewsPage /></ProtectedRoute> },
+  { path: '/admin/bookings', element: <ProtectedRoute roles={[ROLES.ADMIN]}><ManageBookings /></ProtectedRoute> },
+  { path: '/admin/payments', element: <ProtectedRoute roles={[ROLES.ADMIN]}><ManagePayments /></ProtectedRoute> },
+  { path: '/admin/reviews', element: <ProtectedRoute roles={[ROLES.ADMIN]}><ManageReviews /></ProtectedRoute> },
 ]);
 
 const AppRouter = () => <RouterProvider router={router} />;
