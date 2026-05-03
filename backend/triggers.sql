@@ -264,3 +264,70 @@ BEGIN
     JOIN   inserted i ON i.review_id = r.review_id;
 END;
 GO
+
+
+
+-- When a defect is inserted, mark the room type unavailable
+CREATE OR ALTER TRIGGER trg_DisableRoomOnCriticalDefect
+ON Room_Defects
+AFTER INSERT
+AS
+BEGIN
+    SET NOCOUNT ON;
+    UPDATE Room_Types
+    SET is_available = 0
+    FROM Room_Types rt
+    JOIN inserted i ON i.room_type_id = rt.room_type_id
+    WHERE i.severity = 'CRITICAL';
+END;
+GO
+
+-- When a CRITICAL defect is resolved, re-enable the room type
+-- (only if no other open CRITICAL defects remain)
+CREATE OR ALTER TRIGGER trg_ReEnableRoomOnDefectResolved
+ON Room_Defects
+AFTER UPDATE
+AS
+BEGIN
+    SET NOCOUNT ON;
+    IF NOT EXISTS (
+        SELECT 1 FROM inserted i
+        JOIN deleted d ON i.defect_id = d.defect_id
+        WHERE i.status = 'RESOLVED' AND d.status <> 'RESOLVED'
+    ) RETURN;
+
+    UPDATE Room_Types
+    SET is_available = 1
+    FROM Room_Types rt
+    JOIN inserted i ON i.room_type_id = rt.room_type_id
+    JOIN deleted  d ON i.defect_id    = d.defect_id
+    WHERE i.status = 'RESOLVED'
+      AND d.status <> 'RESOLVED'
+      AND NOT EXISTS (
+          SELECT 1 FROM Room_Defects rd
+          WHERE rd.room_type_id = rt.room_type_id
+            AND rd.severity     = 'CRITICAL'
+            AND rd.status      <> 'RESOLVED'
+            AND rd.defect_id   <> i.defect_id
+      );
+END;
+GO
+
+
+--automatically update the timestamp 
+CREATE OR ALTER TRIGGER trg_UpdateRoomTypeTimestamp
+ON Room_Types
+AFTER UPDATE
+AS
+BEGIN
+    SET NOCOUNT ON;
+    IF UPDATE(updated_at) AND NOT UPDATE(type_name) AND NOT UPDATE(base_price_per_night)
+        AND NOT UPDATE(total_rooms) AND NOT UPDATE(is_available)
+        RETURN;
+
+    UPDATE Room_Types
+    SET updated_at = SYSUTCDATETIME()
+    FROM Room_Types rt
+    JOIN inserted i ON i.room_type_id = rt.room_type_id;
+END;
+GO

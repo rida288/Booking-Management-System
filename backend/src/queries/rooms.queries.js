@@ -59,7 +59,7 @@ const getRoomAvailability = async (roomTypeId, checkInDate, checkOutDate) => {
         .input('roomTypeId', sql.UniqueIdentifier, roomTypeId)
         .input('checkIn', sql.Date, checkInDate)
         .input('checkOut', sql.Date, checkOutDate)
-        .execute('usp_GetRoomAvaialbility');
+        .execute('usp_GetRoomAvailability');
 
     return result.recordset[0];
 };

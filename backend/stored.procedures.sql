@@ -447,7 +447,7 @@ CREATE OR ALTER PROCEDURE usp_CreateHotel
    @starRating INT =NULL,
    @checkInTime TIME ='14:00:00',
    @checkOutTime  TIME='11:00:00',
-   @cancelationPolicy VARCHAR(MAX) = NULL
+   @cancellationPolicy VARCHAR(MAX) = NULL
 
 AS 
 BEGIN 
@@ -458,7 +458,7 @@ BEGIN
             INSERT INTO Hotels
                 (host_id, name, description, address, city,province ,  country, star_rating, check_in_time, check_out_time, cancellation_policy)
             VALUES
-                (@hostId, @name, @description, @address, @city,@province , @country, @starRating, @checkInTime, @checkOutTime, @cancelationPolicy);
+                (@hostId, @name, @description, @address, @city,@province , @country, @starRating, @checkInTime, @checkOutTime, @cancellationPolicy);
 
         COMMIT TRANSACTION;
     END TRY
@@ -483,7 +483,7 @@ CREATE OR ALTER PROCEDURE usp_UpdateHotel
     @starRating INT = NULL,
     @checkInTime TIME,
     @checkOutTime TIME,
-    @cancelationPolicy VARCHAR(MAX) = NULL
+    @cancellationPolicy VARCHAR(MAX) = NULL
 
 AS 
 BEGIN 
@@ -499,7 +499,7 @@ BEGIN
    star_rating =@starRating ,
    check_in_time =@checkInTime, 
    check_out_time =@checkOutTime,
-   cancellation_policy = @cancelationPolicy
+   cancellation_policy = @cancellationPolicy
    WHERE hotel_id  =@hotelId ;
 
    SELECT * 
@@ -1467,10 +1467,9 @@ BEGIN
     BEGIN TRY 
         BEGIN TRANSACTION;
 
-            INSERT INTO Amenity
-                (name, description)
-            VALUES
-                (@name, @description);
+         INSERT INTO Amenity (amenity_id, name, description)
+         VALUES (NEWSEQUENTIALID(), @name, @description);
+
 
         COMMIT TRANSACTION;
     END TRY
@@ -1518,7 +1517,7 @@ BEGIN
     SET NOCOUNT ON ;
     SELECT a.amenity_id, a.name, a.description
     FROM Amenity a
-    JOIN RoomType_Amenities rta ON rta.amenity_id = a.amenity_id
+    JOIN Room_Type_Amenities rta ON rta.amenity_id = a.amenity_id
     WHERE rta.room_type_id = @roomTypeId ;
 END;
 GO 
@@ -1560,7 +1559,7 @@ BEGIN
     BEGIN TRY 
         BEGIN TRANSACTION;
 
-            INSERT INTO RoomType_Amenities
+            INSERT INTO Room_Type_Amenities
                 (room_type_id, amenity_id)
             VALUES
                 (@roomTypeId, @amenityId);
@@ -1609,7 +1608,7 @@ BEGIN
     BEGIN TRY
         BEGIN TRANSACTION;
 
-            DELETE FROM RoomType_Amenities
+            DELETE FROM Room_Type_Amenities
             WHERE room_type_id = @roomTypeId AND amenity_id = @amenityId;
 
         COMMIT TRANSACTION;

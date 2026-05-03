@@ -49,3 +49,49 @@ AS
     JOIN Hotels     h   ON h.hotel_id       = rt.hotel_id
     WHERE rv.host_response IS NULL;
 GO
+
+
+-- available and booked rooms per room type
+CREATE OR ALTER VIEW vw_RoomAvailabilitySummary
+AS
+    SELECT
+        rt.room_type_id,
+        rt.hotel_id,
+        h.name                  AS hotel_name,
+        rt.type_name,
+        rt.total_rooms,
+        rt.base_price_per_night,
+        rt.is_available,
+        ISNULL(SUM(b.num_rooms), 0)                         AS currently_booked,
+        rt.total_rooms - ISNULL(SUM(b.num_rooms), 0)       AS currently_available
+    FROM Room_Types rt
+    JOIN Hotels h ON h.hotel_id = rt.hotel_id
+    LEFT JOIN Bookings b ON b.room_type_id = rt.room_type_id
+        AND b.status IN ('PENDING', 'CONFIRMED')
+        AND b.check_in_date  <= CAST(GETDATE() AS DATE)
+        AND b.check_out_date >  CAST(GETDATE() AS DATE)
+    GROUP BY rt.room_type_id, rt.hotel_id, h.name, rt.type_name,
+             rt.total_rooms, rt.base_price_per_night, rt.is_available;
+GO
+
+-- defects display view for hosts
+CREATE OR ALTER VIEW vw_OpenDefectsSummary
+AS
+    SELECT
+        d.defect_id,
+        d.room_type_id,
+        rt.type_name        AS room_type,
+        h.hotel_id,
+        h.name              AS hotel_name,
+        h.host_id,
+        u.full_name         AS reported_by_name,
+        d.title,
+        d.severity,
+        d.status,
+        d.reported_at
+    FROM Room_Defects d
+    JOIN Room_Types rt  ON rt.room_type_id = d.room_type_id
+    JOIN Hotels     h   ON h.hotel_id      = rt.hotel_id
+    JOIN Users      u   ON u.user_id       = d.reported_by
+    WHERE d.status IN ('OPEN', 'IN_PROGRESS')
+GO

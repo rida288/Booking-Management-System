@@ -40,6 +40,16 @@ const getRoomDefectById = async (user, defectId) =>
 {
     const defect = await defectQueries.getRoomDefectById(defectId);
     if (!defect) throw new Error('Defect not found');   
+
+    if (user.role === ROLES.HOST) 
+    {
+        const room = await roomQueries.getRoomTypeById(defect.room_type_id);
+        const hotel = await hotelQueries.getHotelById(room.hotel_id);
+        if (hotel.host_id !== user.userId) 
+        {
+            throw new Error('Unauthorized to view this defect');
+        }
+    }
     return defect;
 };
 

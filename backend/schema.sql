@@ -72,6 +72,7 @@ GO
 CREATE TABLE Amenity (
     amenity_id  UNIQUEIDENTIFIER    NOT NULL,
     name        VARCHAR(100)        NOT NULL,
+    description VARCHAR(MAX)        NULL,
 
     CONSTRAINT PK_amenity PRIMARY KEY (amenity_id)
 );
@@ -408,3 +409,20 @@ CREATE TABLE TokenBlacklist (
     CONSTRAINT CK_token_blacklist_expiry CHECK (expires_at > blacklisted_at)
 );
 GO
+
+----- INDEXING STRATEGIES -----
+-- Hotels: searching by city/country is very common
+CREATE INDEX IX_Hotels_City        ON Hotels (city);
+CREATE INDEX IX_Hotels_Country     ON Hotels (country);
+CREATE INDEX IX_Hotels_HostId      ON Hotels (host_id);
+
+-- Room_Types: lookups by hotel are the most frequent query
+CREATE INDEX IX_RoomTypes_HotelId  ON Room_Types (hotel_id);
+
+-- Room_Defects: filtering by status and room type
+CREATE INDEX IX_Defects_RoomTypeId ON Room_Defects (room_type_id);
+CREATE INDEX IX_Defects_Status     ON Room_Defects (status);
+
+-- Hotel_Amenities / Room_Type_Amenities: junction table lookups
+CREATE INDEX IX_HotelAmenities_AmenityId    ON Hotel_Amenities (amenity_id);
+CREATE INDEX IX_RoomTypeAmenities_AmenityId ON Room_Type_Amenities (amenity_id);
