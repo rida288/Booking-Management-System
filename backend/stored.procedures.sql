@@ -217,21 +217,28 @@ BEGIN
     SET NOCOUNT ON;
     SELECT
         b.booking_id,
-        h.name      AS hotel_name,
+        h.name          AS hotel_name,
+        h.city,
+        h.country,
         rt.type_name,
-        u.full_name AS guest_name,
+        rt.bed_type,
+        u.full_name     AS guest_name,
         b.check_in_date,
         b.check_out_date,
         b.num_guests,
         b.num_rooms,
+        b.base_price_per_night,
         b.discount_percent,
         CAST(
             b.base_price_per_night
             * b.num_rooms
             * DATEDIFF(DAY, b.check_in_date, b.check_out_date)
             * (1.0 - b.discount_percent / 100.0)
-        AS DECIMAL(12, 2))  AS total_amount,
-        b.status
+        AS DECIMAL(12, 2)) AS total_amount,
+        b.status,
+        b.cancellation_reason,
+        b.cancelled_at,
+        b.created_at
     FROM Bookings b
     JOIN Room_Types rt ON rt.room_type_id = b.room_type_id
     JOIN Hotels     h  ON h.hotel_id      = rt.hotel_id
@@ -317,7 +324,8 @@ GO
 -- usp_GetBookingHistory_Host
 -- -----------------------------------------------------------------------------
 CREATE OR ALTER PROCEDURE usp_GetBookingHistory_Host
-    @hostId UNIQUEIDENTIFIER
+    @hostId UNIQUEIDENTIFIER,
+    @status VARCHAR(15) = NULL
 AS
 BEGIN
     SET NOCOUNT ON;
@@ -343,7 +351,47 @@ BEGIN
     JOIN Hotels     h  ON h.hotel_id      = rt.hotel_id
     JOIN Users      u  ON u.user_id       = b.guest_id
     WHERE h.host_id = @hostId
+    AND (@status IS NULL OR b.status = @status)
     ORDER BY b.check_in_date DESC;
+END;
+GO
+
+
+-- -----------------------------------------------------------------------------
+-- usp_GetBookingHistory_Admin
+-- -----------------------------------------------------------------------------
+CREATE OR ALTER PROCEDURE usp_GetBookingHistory_Admin
+    @status VARCHAR(15) = NULL
+AS
+BEGIN
+    SET NOCOUNT ON;
+    SELECT
+        b.booking_id,
+        h.name          AS hotel_name,
+        u.full_name     AS guest_name,
+        rt.type_name,
+        b.check_in_date,
+        b.check_out_date,
+        b.num_guests,
+        b.num_rooms,
+        b.base_price_per_night,
+        b.discount_percent,
+        CAST(
+            b.base_price_per_night
+            * b.num_rooms
+            * DATEDIFF(DAY, b.check_in_date, b.check_out_date)
+            * (1.0 - b.discount_percent / 100.0)
+        AS DECIMAL(12, 2)) AS total_amount,
+        b.status,
+        b.cancellation_reason,
+        b.cancelled_at,
+        b.created_at
+    FROM Bookings b
+    JOIN Room_Types rt ON rt.room_type_id = b.room_type_id
+    JOIN Hotels     h  ON h.hotel_id      = rt.hotel_id
+    JOIN Users      u  ON u.user_id       = b.guest_id
+    WHERE (@status IS NULL OR b.status = @status)
+    ORDER BY b.created_at DESC;
 END;
 GO
 
@@ -1207,10 +1255,17 @@ BEGIN
     BEGIN TRY
         BEGIN TRANSACTION;
 
-            INSERT INTO Payments
-                (booking_id, guest_id, payment_type, amount, payment_method, payment_gateway, status, initiated_at)
-            VALUES
-                (@bookingId, @guestId, 'CHARGE', @amount, @paymentMethod, @gateway, 'SUCCESSFUL', SYSUTCDATETIME());
+        INSERT INTO Payments
+            (booking_id, guest_id, payment_type, amount, payment_method, payment_gateway, status, initiated_at)
+        VALUES
+            (@bookingId, @guestId, 'CHARGE', @amount, @paymentMethod, @gateway, 'SUCCESSFUL', SYSUTCDATETIME());
+
+        -- Update booking status to CONFIRMED after successful payment
+        UPDATE Bookings
+        SET status = 'CONFIRMED'
+        WHERE booking_id = @bookingId
+          AND guest_id = @guestId
+          AND status = 'PENDING';
 
         COMMIT TRANSACTION;
     END TRY
@@ -1298,6 +1353,7 @@ BEGIN
     JOIN Room_Types rt ON rt.room_type_id = b.room_type_id
     JOIN Hotels     h  ON h.hotel_id      = rt.hotel_id
     WHERE p.guest_id = @guestId
+    AND p.payment_type = 'CHARGE'
     ORDER BY p.initiated_at DESC;
 END;
 GO
@@ -1323,6 +1379,7 @@ BEGIN
     JOIN Hotels     h  ON h.hotel_id      = rt.hotel_id
     JOIN Users      u  ON u.user_id       = p.guest_id
     WHERE h.host_id = @hostId
+    AND p.payment_type = 'CHARGE'
     ORDER BY p.initiated_at DESC;
 END;
 GO
@@ -1353,7 +1410,10 @@ BEGIN
     JOIN Room_Types rt ON rt.room_type_id = b.room_type_id
     JOIN Hotels     h  ON h.hotel_id      = rt.hotel_id
     JOIN Users      u  ON u.user_id       = p.guest_id
-    LEFT JOIN Refunds r ON r.payment_id   = p.payment_id
+    LEFT JOIN Payments pr ON pr.booking_id = p.booking_id 
+                          AND pr.payment_type = 'REFUND'
+    LEFT JOIN Refunds r  ON r.payment_id  = pr.payment_id
+    WHERE p.payment_type = 'CHARGE'
     ORDER BY p.initiated_at DESC;
 END;
 GO

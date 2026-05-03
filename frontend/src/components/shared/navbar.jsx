@@ -28,6 +28,7 @@ const Navbar = () => {
               <>
                 <Link to="/bookings" style={styles.link}>My Bookings</Link>
                 <Link to="/payments" style={styles.link}>Payments</Link>
+                <Link to="/reviews" style={styles.link}>My Reviews</Link>
               </>
             )}
 
@@ -35,14 +36,16 @@ const Navbar = () => {
               <>
                 <Link to="/bookings/history" style={styles.link}>Reservations</Link>
                 <Link to="/payments" style={styles.link}>Payments</Link>
+                <Link to="/host/reviews" style={styles.link}>Reviews</Link>
               </>
             )}
 
             {user?.role === ROLES.ADMIN && (
               <>
                 <Link to="/admin" style={styles.link}>Admin</Link>
-                <Link to="/bookings" style={styles.link}>Bookings</Link>
-                <Link to="/payments" style={styles.link}>Payments</Link>
+                <Link to="/admin/payments" style={styles.link}>Manage Payments</Link>
+                <Link to="/admin/bookings" style={styles.link}>Manage Bookings</Link>
+                <Link to="/admin/reviews" style={styles.link}>Manage Reviews</Link>
               </>
             )}
 
