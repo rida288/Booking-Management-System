@@ -26,6 +26,7 @@ app.use('/api/payments', require('./src/routes/payments.routes'));
 app.use('/api/defects',  require('./src/routes/defects.routes'));
 app.use('/api/amenities',require('./src/routes/amenity.routes'));
 // app.use('/api/events',   require('./src/routes/events.routes'));
+app.use('/api/dashboard', require('./src/routes/dashboard.routes'));
 
 const port = process.env.PORT || 5000;
 app.listen(port, () => {

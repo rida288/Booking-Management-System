@@ -1620,3 +1620,178 @@ BEGIN
     END CATCH;
 END;
 GO
+
+-- =============================================================================
+-- DASHBOARD PROCEDURES
+-- =============================================================================
+
+-- -----------------------------------------------------------------------------
+-- usp_GetAdminDashboard
+-- Returns all stats needed for the admin dashboard in one call
+-- -----------------------------------------------------------------------------
+CREATE OR ALTER PROCEDURE usp_GetAdminDashboard
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    -- Total revenue (all successful charges)
+    SELECT
+        CAST(ISNULL(SUM(p.amount), 0) AS DECIMAL(12, 2)) AS total_revenue
+    FROM Payments p
+    WHERE p.payment_type = 'CHARGE'
+      AND p.status       = 'SUCCESSFUL';
+
+    -- Revenue this month
+    SELECT
+        CAST(ISNULL(SUM(p.amount), 0) AS DECIMAL(12, 2)) AS revenue_this_month
+    FROM Payments p
+    WHERE p.payment_type = 'CHARGE'
+      AND p.status       = 'SUCCESSFUL'
+      AND MONTH(p.initiated_at) = MONTH(SYSUTCDATETIME())
+      AND YEAR(p.initiated_at)  = YEAR(SYSUTCDATETIME());
+
+    -- Bookings by status
+    SELECT
+        b.status,
+        COUNT(*) AS total
+    FROM Bookings b
+    GROUP BY b.status
+    ORDER BY total DESC;
+
+    -- Revenue by month (last 6 months)
+    SELECT
+        FORMAT(p.initiated_at, 'MMM yyyy')          AS month,
+        CAST(SUM(p.amount) AS DECIMAL(12, 2))        AS revenue,
+        YEAR(p.initiated_at)                         AS yr,
+        MONTH(p.initiated_at)                        AS mn
+    FROM Payments p
+    WHERE p.payment_type = 'CHARGE'
+      AND p.status       = 'SUCCESSFUL'
+      AND p.initiated_at >= DATEADD(MONTH, -6, SYSUTCDATETIME())
+    GROUP BY FORMAT(p.initiated_at, 'MMM yyyy'), YEAR(p.initiated_at), MONTH(p.initiated_at)
+    ORDER BY yr, mn;
+
+    -- Top 3 hotels by revenue
+    SELECT TOP 3
+        h.name                                          AS hotel_name,
+        h.city,
+        CAST(SUM(p.amount) AS DECIMAL(12, 2))           AS total_revenue,
+        COUNT(DISTINCT b.booking_id)                    AS total_bookings
+    FROM Payments p
+    JOIN Bookings   b  ON b.booking_id    = p.booking_id
+    JOIN Room_Types rt ON rt.room_type_id = b.room_type_id
+    JOIN Hotels     h  ON h.hotel_id      = rt.hotel_id
+    WHERE p.payment_type = 'CHARGE'
+      AND p.status       = 'SUCCESSFUL'
+    GROUP BY h.hotel_id, h.name, h.city
+    ORDER BY total_revenue DESC;
+
+    -- Pending and failed payment counts
+    SELECT
+        COUNT(CASE WHEN p.status = 'PENDING'  AND p.payment_type = 'CHARGE' THEN 1 END) AS pending_payments,
+        COUNT(CASE WHEN p.status = 'FAILED'                                  THEN 1 END) AS failed_payments,
+        COUNT(CASE WHEN p.status = 'PENDING'  AND p.payment_type = 'REFUND' THEN 1 END) AS pending_refunds
+    FROM Payments p;
+END;
+GO
+
+-- -----------------------------------------------------------------------------
+-- usp_GetHostDashboard
+-- Returns all stats needed for the host dashboard
+-- -----------------------------------------------------------------------------
+CREATE OR ALTER PROCEDURE usp_GetHostDashboard
+    @hostId UNIQUEIDENTIFIER
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    -- Total revenue from host properties
+    SELECT
+        CAST(ISNULL(SUM(p.amount), 0) AS DECIMAL(12, 2)) AS total_revenue
+    FROM Payments p
+    JOIN Bookings   b  ON b.booking_id    = p.booking_id
+    JOIN Room_Types rt ON rt.room_type_id = b.room_type_id
+    JOIN Hotels     h  ON h.hotel_id      = rt.hotel_id
+    WHERE h.host_id      = @hostId
+      AND p.payment_type = 'CHARGE'
+      AND p.status       = 'SUCCESSFUL';
+
+    -- Revenue this month
+    SELECT
+        CAST(ISNULL(SUM(p.amount), 0) AS DECIMAL(12, 2)) AS revenue_this_month
+    FROM Payments p
+    JOIN Bookings   b  ON b.booking_id    = p.booking_id
+    JOIN Room_Types rt ON rt.room_type_id = b.room_type_id
+    JOIN Hotels     h  ON h.hotel_id      = rt.hotel_id
+    WHERE h.host_id      = @hostId
+      AND p.payment_type = 'CHARGE'
+      AND p.status       = 'SUCCESSFUL'
+      AND MONTH(p.initiated_at) = MONTH(SYSUTCDATETIME())
+      AND YEAR(p.initiated_at)  = YEAR(SYSUTCDATETIME());
+
+    -- Bookings by status for host properties
+    SELECT
+        b.status,
+        COUNT(*) AS total
+    FROM Bookings b
+    JOIN Room_Types rt ON rt.room_type_id = b.room_type_id
+    JOIN Hotels     h  ON h.hotel_id      = rt.hotel_id
+    WHERE h.host_id = @hostId
+    GROUP BY b.status
+    ORDER BY total DESC;
+
+    -- Occupancy rate per room type
+    SELECT
+        rt.type_name,
+        rt.total_rooms,
+        COUNT(CASE WHEN b.status IN ('PENDING', 'CONFIRMED') THEN 1 END) AS active_bookings,
+        CAST(
+            COUNT(CASE WHEN b.status IN ('PENDING', 'CONFIRMED') THEN 1 END) * 100.0
+            / NULLIF(rt.total_rooms, 0)
+        AS DECIMAL(5, 2)) AS occupancy_rate
+    FROM Room_Types rt
+    JOIN Hotels h ON h.hotel_id = rt.hotel_id
+    LEFT JOIN Bookings b ON b.room_type_id = rt.room_type_id
+        AND b.check_in_date  <= CAST(SYSUTCDATETIME() AS DATE)
+        AND b.check_out_date >= CAST(SYSUTCDATETIME() AS DATE)
+    WHERE h.host_id = @hostId
+    GROUP BY rt.room_type_id, rt.type_name, rt.total_rooms
+    ORDER BY occupancy_rate DESC;
+
+    -- Pending bookings count
+    SELECT
+        COUNT(*) AS pending_bookings
+    FROM Bookings b
+    JOIN Room_Types rt ON rt.room_type_id = b.room_type_id
+    JOIN Hotels     h  ON h.hotel_id      = rt.hotel_id
+    WHERE h.host_id  = @hostId
+      AND b.status   = 'PENDING';
+
+    -- Unresponded reviews count
+    SELECT
+        COUNT(*) AS unresponded_reviews
+    FROM Reviews rv
+    JOIN Bookings   b  ON b.booking_id    = rv.booking_id
+    JOIN Room_Types rt ON rt.room_type_id = b.room_type_id
+    JOIN Hotels     h  ON h.hotel_id      = rt.hotel_id
+    WHERE h.host_id          = @hostId
+      AND rv.host_response   IS NULL;
+
+    -- Revenue by month last 6 months
+    SELECT
+        FORMAT(p.initiated_at, 'MMM yyyy')          AS month,
+        CAST(SUM(p.amount) AS DECIMAL(12, 2))        AS revenue,
+        YEAR(p.initiated_at)                         AS yr,
+        MONTH(p.initiated_at)                        AS mn
+    FROM Payments p
+    JOIN Bookings   b  ON b.booking_id    = p.booking_id
+    JOIN Room_Types rt ON rt.room_type_id = b.room_type_id
+    JOIN Hotels     h  ON h.hotel_id      = rt.hotel_id
+    WHERE h.host_id      = @hostId
+      AND p.payment_type = 'CHARGE'
+      AND p.status       = 'SUCCESSFUL'
+      AND p.initiated_at >= DATEADD(MONTH, -6, SYSUTCDATETIME())
+    GROUP BY FORMAT(p.initiated_at, 'MMM yyyy'), YEAR(p.initiated_at), MONTH(p.initiated_at)
+    ORDER BY yr, mn;
+END;
+GO
