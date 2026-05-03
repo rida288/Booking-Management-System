@@ -20,7 +20,7 @@ const LoginForm = () => {
       login(user, token);
       navigate('/hotels');
     } catch (err) {
-      setError(err.response?.data?.message || 'Login failed');
+      setError(err.response?.data?.message || err.message || 'Login failed');
     } finally { setLoading(false); }
   };
 
