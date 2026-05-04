@@ -38,6 +38,7 @@ const Navbar = () => {
                 <Link to="/payments" style={styles.link}>Payments</Link>
                 <Link to="/host/reviews" style={styles.link}>Reviews</Link>
                 <Link to="/host/dashboard" style={styles.link}>Dashboard</Link>
+                <Link to="/host/listings" style={styles.link}>My Listings</Link>
               </>
             )}
 
@@ -48,6 +49,7 @@ const Navbar = () => {
                 <Link to="/admin/bookings" style={styles.link}>Manage Bookings</Link>
                 <Link to="/admin/reviews" style={styles.link}>Manage Reviews</Link>
                 <Link to="/admin/dashboard" style={styles.link}>Dashboard</Link>
+                <Link to="/admin/hotels" style={styles.link}>Manage Hotels</Link>
               </>
             )}
 

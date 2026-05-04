@@ -569,6 +569,25 @@ BEGIN
 END;
 GO 
 
+CREATE OR ALTER PROCEDURE usp_GetHotelsByHost
+    @hostId UNIQUEIDENTIFIER
+AS
+BEGIN
+    SET NOCOUNT ON;
+    SELECT h.hotel_id, h.name, h.city, h.country, h.star_rating,
+           h.address, h.province, h.description,
+           h.check_in_time, h.check_out_time, h.cancellation_policy,
+           h.created_at,
+           COUNT(rt.room_type_id) AS total_room_types
+    FROM Hotels h
+    LEFT JOIN Room_Types rt ON rt.hotel_id = h.hotel_id
+    WHERE h.host_id = @hostId
+    GROUP BY h.hotel_id, h.name, h.city, h.country, h.star_rating,
+             h.address, h.province, h.description,
+             h.check_in_time, h.check_out_time, h.cancellation_policy, h.created_at
+    ORDER BY h.created_at DESC;
+END;
+GO
 
 
 -- Room Types

@@ -70,5 +70,13 @@ const searchHotel = async (req, res) =>
     }
 };
 
+const getMyHotels = async (req, res) => {
+    try {
+        const hotels = await HotelService.getMyHotels(req.user.userId);
+        return sendSuccess(res, hotels);
+    } catch (error) {
+        return sendError(res, error.message, 400);
+    }
+};
 
-module.exports = { createHotel, updateHotel, deleteHotel, getHotelById, searchHotel };
+module.exports = { getMyHotels, createHotel, updateHotel, deleteHotel, getHotelById, searchHotel };

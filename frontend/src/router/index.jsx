@@ -20,6 +20,8 @@ import HostDashboard from '../pages/dashboard/hostdashboard';
 import { ROLES } from '../utils/constants';
 import DefectsPage from '../pages/defect/defects';
 import HotelDetail from '../pages/hotel/hoteldetail';
+import ManageListings from '../pages/hotel/managelistings';
+import ManageHotels from '../pages/admin/managehotels';
 
 const Layout = ({ children }) => (
   <div style={{ minHeight:'100vh', background:'#f0f2f5' }}>
@@ -60,7 +62,10 @@ const AppRouter = () => (
       <Route path="/defects" element={<PublicLayout><DefectsPage /></PublicLayout>} />
       <Route path="/admin/dashboard" element={<ProtectedRoute roles={[ROLES.ADMIN]}><AdminDashboard /></ProtectedRoute>} />
       <Route path="/host/dashboard" element={<ProtectedRoute roles={[ROLES.HOST]}><HostDashboard /></ProtectedRoute>} />
+      <Route path="/host/listings" element={<ProtectedRoute roles={[ROLES.HOST]}><ManageListings /></ProtectedRoute>} />
       <Route path="*" element={<Navigate to="/" replace />} />
+      <Route path="/admin/hotels" element={<ProtectedRoute roles={[ROLES.ADMIN]}><ManageHotels /></ProtectedRoute>} />
+
     </Routes>
   </BrowserRouter>
 );

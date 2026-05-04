@@ -14,6 +14,7 @@ const { ROLES } = require('../utils/constants');
 const Controller = require('../controllers/hotels.controller');
 
 router.post('/', protect, requireAnyOf(ROLES.HOST, ROLES.ADMIN), Controller.createHotel);
+router.get('/my/hotels', protect, requireAnyOf(ROLES.HOST), Controller.getMyHotels);
 router.get('/', Controller.searchHotel);
 router.get('/:id', Controller.getHotelById);
 router.put('/:id', protect, requireAnyOf(ROLES.HOST, ROLES.ADMIN), Controller.updateHotel);

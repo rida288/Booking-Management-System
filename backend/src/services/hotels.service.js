@@ -51,4 +51,8 @@ const searchHotel = async (filters) => {
     return hotelQueries.searchHotel(filters);
 };
 
-module.exports = { createHotel, updateHotel, deleteHotel, getHotelById, searchHotel };
+const getMyHotels = async (hostId) => {
+    return hotelQueries.getMyHotels(hostId);
+};
+
+module.exports = { createHotel, updateHotel, deleteHotel, getHotelById, searchHotel, getMyHotels };

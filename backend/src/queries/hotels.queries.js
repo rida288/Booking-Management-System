@@ -13,13 +13,22 @@ const createHotel = async (hotelData) =>
     .input('province', sql.VarChar , hotelData.province )
     .input('country', sql.VarChar , hotelData.country  )
     .input('starRating', sql.Int , hotelData.starRating )
-    .input('checkInTime', sql.Time , hotelData.checkInTime )
-    .input('checkOutTime', sql.Time , hotelData.checkOutTime )   
-    .input('cancelationPolicy', sql.VarChar , hotelData.cancellationPolicy  )
+    .input('checkInTime', sql.Time, new Date('1900-01-01T14:00:00'))
+    .input('checkOutTime', sql.Time, new Date('1900-01-01T11:00:00'))  
+    .input('cancellationPolicy', sql.VarChar , hotelData.cancellationPolicy  )
     .execute('usp_CreateHotel');
 
     return result.recordset ? result.recordset[0] : { message: 'Hotel created successfully' };
 };
+
+const getMyHotels = async (hostId) => {
+    const pool = await poolPromise;
+    const result = await pool.request()
+        .input('hostId', sql.UniqueIdentifier, hostId)
+        .execute('usp_GetHotelsByHost');
+    return result.recordset;
+};
+
 // update 
 const updateHotel = async (hotelId ,data ) => 
 {
@@ -69,4 +78,4 @@ const getHotelById = async (hotelId) =>
 };
 
 
-module.exports = { createHotel, updateHotel, deleteHotel, getHotelById, searchHotel };
+module.exports = { createHotel, updateHotel, deleteHotel, getHotelById, searchHotel, getMyHotels };
