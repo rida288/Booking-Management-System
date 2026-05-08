@@ -6,6 +6,7 @@ import { getHotelById } from "../../services/hotel.service";
 import { getRoomsByHotel } from "../../services/room.service";
 import { getReviewsByHotel } from "../../services/review.service";
 import { useAuth } from "../../hooks/useAuth";
+import { getHotelAmenities } from "../../services/amenities.service";
 
 const HotelDetail = () => {
   const { id } = useParams();
@@ -17,19 +18,22 @@ const HotelDetail = () => {
   const [selectedRoom, setSelectedRoom] = useState(null);
   const [reviews, setReviews] = useState([]);
   const [reviewsLoading, setReviewsLoading] = useState(true);
+  const [amenities, setAmenities] = useState([]);
 
   useEffect(() => { fetchData(); }, []);
 
   const fetchData = async () => {
     try {
-      const [hotelRes, roomRes, reviewRes] = await Promise.all([
+      const [hotelRes, roomRes, reviewRes, amenityRes] = await Promise.all([
         getHotelById(id),
         getRoomsByHotel(id),
         getReviewsByHotel(id),
+        getHotelAmenities(id),
       ]);
       setHotel(hotelRes.data?.data || hotelRes.data);
       setRooms(roomRes.data?.data || []);
       setReviews(reviewRes.data?.data || reviewRes.data || []);
+      setAmenities(amenityRes.data?.data || []);
     } catch (e) {
       console.error(e);
     } finally {
@@ -91,6 +95,17 @@ const HotelDetail = () => {
       {hotel.cancellation_policy && (
         <div style={styles.policyCard}>
           <strong>Cancellation Policy:</strong> {hotel.cancellation_policy}
+        </div>
+      )}
+
+      {amenities.length > 0 && (
+        <div style={styles.amenitiesCard}>
+          <h3 style={styles.sectionHeading}>Hotel Amenities</h3>
+          <div style={styles.amenitiesGrid}>
+            {amenities.map(a => (
+              <span key={a.amenity_id} style={styles.amenityBadge}>✓ {a.name}</span>
+            ))}
+          </div>
         </div>
       )}
 
@@ -227,6 +242,9 @@ const styles = {
   hostResponse: { marginTop: "12px", background: "#f8f9ff", border: "1px solid #e0e8ff", borderRadius: "8px", padding: "12px 14px" },
   hostResponseLabel: { fontSize: "12px", fontWeight: "700", color: "#3b5bdb", display: "block", marginBottom: "6px" },
   hostResponseText: { margin: 0, fontSize: "13px", color: "#444", lineHeight: "1.6" },
+  amenitiesCard: { background:'#fff', border:'1px solid #e0e0e0', borderRadius:'12px', padding:'24px', marginBottom:'16px', boxShadow:'0 2px 8px rgba(0,0,0,0.05)' },
+  amenitiesGrid: { display:'flex', flexWrap:'wrap', gap:'10px', marginTop:'12px' },
+  amenityBadge: { padding:'6px 14px', background:'#f0f4ff', color:'#1a1a2e', borderRadius:'20px', fontSize:'13px', fontWeight:'500', border:'1px solid #c0d0ff' },
 };
 
 export default HotelDetail;

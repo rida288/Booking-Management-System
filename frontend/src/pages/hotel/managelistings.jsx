@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import { getMyHotels, createHotel, deleteHotel } from '../../services/hotel.service';
 import { getRoomsByHotel, createRoom } from '../../services/room.service';
+import { getHotelAmenities, getAllAmenities, addHotelAmenity, removeHotelAmenity } from '../../services/amenities.service';
+import { getDefects } from '../../services/defect.service';
 import Spinner from '../../components/shared/Spinner';
 
 const ManageListings = () => {
@@ -12,10 +14,15 @@ const ManageListings = () => {
   const [showHotelForm, setShowHotelForm] = useState(false);
   const [showRoomForm, setShowRoomForm] = useState(null);
   const [deleting, setDeleting] = useState(null);
+  const [hotelAmenities, setHotelAmenities] = useState({});
+  const [allAmenities, setAllAmenities] = useState([]);
+  const [showAmenityPanel, setShowAmenityPanel] = useState(null);
+  const [defects, setDefects] = useState({});           // NEW
+  const [expandedRoom, setExpandedRoom] = useState(null); // NEW
 
   const [hotelForm, setHotelForm] = useState({
     name:'', city:'', country:'', description:'', address:'',
-    province:'', star_rating:'', check_in_time:'14:00:00', check_out_time:'11:00:00',
+    province:'', star_rating:'', check_in_time:'14:00', check_out_time:'11:00',
     cancellation_policy:''
   });
 
@@ -26,6 +33,7 @@ const ManageListings = () => {
 
   useEffect(() => {
     loadHotels();
+    loadAllAmenities();
   }, []);
 
   const loadHotels = async () => {
@@ -45,22 +53,57 @@ const ManageListings = () => {
     } catch (e) { console.error(e); }
   };
 
+  const loadAllAmenities = async () => {
+    try {
+      const res = await getAllAmenities();
+      setAllAmenities(res.data?.data || []);
+    } catch (e) { console.error(e); }
+  };
+
+  const loadHotelAmenities = async (hotelId) => {
+    try {
+      const res = await getHotelAmenities(hotelId);
+      setHotelAmenities(prev => ({ ...prev, [hotelId]: res.data?.data || [] }));
+    } catch (e) { console.error(e); }
+  };
+
+  // NEW
+  const loadDefects = async (roomTypeId) => {
+    if (defects[roomTypeId]) return;
+    try {
+      const res = await getDefects();
+      const all = res.data?.data || [];
+      const filtered = all.filter(d => d.room_type_id === roomTypeId);
+      setDefects(prev => ({ ...prev, [roomTypeId]: filtered }));
+    } catch (e) { console.error(e); }
+  };
+
+  // NEW
+  const toggleRoom = async (roomTypeId) => {
+    if (expandedRoom === roomTypeId) {
+      setExpandedRoom(null);
+    } else {
+      setExpandedRoom(roomTypeId);
+      await loadDefects(roomTypeId);
+    }
+  };
+
   const toggleHotel = async (hotelId) => {
     if (expandedHotel === hotelId) {
       setExpandedHotel(null);
     } else {
       setExpandedHotel(hotelId);
-      await loadRooms(hotelId);
+      await Promise.all([loadRooms(hotelId), loadHotelAmenities(hotelId)]);
     }
   };
 
   const handleCreateHotel = async () => {
     try {
       await createHotel({
-      ...hotelForm,
-      check_in_time: hotelForm.check_in_time + ':00',
-      check_out_time: hotelForm.check_out_time + ':00',
-    });
+        ...hotelForm,
+        check_in_time: hotelForm.check_in_time + ':00',
+        check_out_time: hotelForm.check_out_time + ':00',
+      });
       setShowHotelForm(false);
       setHotelForm({ name:'', city:'', country:'', description:'', address:'', province:'', star_rating:'', check_in_time:'14:00', check_out_time:'11:00', cancellation_policy:'' });
       await loadHotels();
@@ -90,6 +133,20 @@ const ManageListings = () => {
     } catch (e) {
       alert(e.response?.data?.message || 'Failed to create room');
     }
+  };
+
+  const handleAddAmenity = async (hotelId, amenityId) => {
+    try {
+      await addHotelAmenity(hotelId, amenityId);
+      await loadHotelAmenities(hotelId);
+    } catch (e) { alert(e.response?.data?.message || 'Failed to add amenity'); }
+  };
+
+  const handleRemoveAmenity = async (hotelId, amenityId) => {
+    try {
+      await removeHotelAmenity(hotelId, amenityId);
+      setHotelAmenities(prev => ({ ...prev, [hotelId]: prev[hotelId].filter(a => a.amenity_id !== amenityId) }));
+    } catch (e) { alert(e.response?.data?.message || 'Failed to remove amenity'); }
   };
 
   if (loading) return <Spinner />;
@@ -146,7 +203,7 @@ const ManageListings = () => {
               </div>
               <div style={styles.hotelActions}>
                 <button onClick={() => toggleHotel(hotel.hotel_id)} style={styles.expandBtn}>
-                  {expandedHotel === hotel.hotel_id ? 'Hide Rooms ▲' : 'Manage Rooms ▼'}
+                  {expandedHotel === hotel.hotel_id ? 'Hide ▲' : 'Manage ▼'}
                 </button>
                 <button onClick={() => handleDeleteHotel(hotel.hotel_id)}
                   disabled={deleting === hotel.hotel_id} style={styles.deleteBtn}>
@@ -157,65 +214,141 @@ const ManageListings = () => {
 
             {expandedHotel === hotel.hotel_id && (
               <div style={styles.roomsSection}>
-                <div style={styles.roomsHeader}>
-                  <h4 style={styles.roomsTitle}>Room Types</h4>
-                  <button onClick={() => setShowRoomForm(showRoomForm === hotel.hotel_id ? null : hotel.hotel_id)}
-                    style={styles.addRoomBtn}>
-                    {showRoomForm === hotel.hotel_id ? 'Cancel' : '+ Add Room Type'}
-                  </button>
-                </div>
 
-                {showRoomForm === hotel.hotel_id && (
-                  <div style={styles.roomFormCard}>
-                    <div style={styles.formGrid}>
-                      {[
-                        ['type_name', 'Room Type Name', 'text'],
-                        ['bed_type', 'Bed Type', 'text'],
-                        ['max_occupancy', 'Max Occupancy', 'number'],
-                        ['total_rooms', 'Total Rooms', 'number'],
-                        ['base_price_per_night', 'Price/Night ($)', 'number'],
-                        ['size_sqft', 'Size (sqft)', 'number'],
-                      ].map(([key, label, type]) => (
-                        <div key={key}>
-                          <label style={styles.label}>{label}</label>
-                          <input style={styles.input} type={type} value={roomForm[key]}
-                            onChange={e => setRoomForm({...roomForm, [key]: e.target.value})} />
-                        </div>
-                      ))}
-                    </div>
-                    <label style={styles.label}>Description</label>
-                    <textarea style={styles.textarea} rows={2} value={roomForm.description}
-                      onChange={e => setRoomForm({...roomForm, description: e.target.value})} />
-                    <button onClick={() => handleCreateRoom(hotel.hotel_id)} style={styles.submitBtn}>
-                      Add Room Type
+                {/* AMENITIES */}
+                <div style={styles.sectionBlock}>
+                  <div style={styles.roomsHeader}>
+                    <h4 style={styles.roomsTitle}>Hotel Amenities</h4>
+                    <button onClick={() => setShowAmenityPanel(showAmenityPanel === hotel.hotel_id ? null : hotel.hotel_id)}
+                      style={styles.addRoomBtn}>
+                      {showAmenityPanel === hotel.hotel_id ? 'Cancel' : '+ Add Amenity'}
                     </button>
                   </div>
-                )}
+                  <div style={styles.amenitiesGrid}>
+                    {(hotelAmenities[hotel.hotel_id] || []).length === 0 ? (
+                      <p style={{ color:'#888', fontSize:'13px' }}>No amenities added yet.</p>
+                    ) : (
+                      hotelAmenities[hotel.hotel_id].map(a => (
+                        <span key={a.amenity_id} style={styles.amenityTag}>
+                          {a.name}
+                          <button onClick={() => handleRemoveAmenity(hotel.hotel_id, a.amenity_id)} style={styles.removeAmenityBtn}>×</button>
+                        </span>
+                      ))
+                    )}
+                  </div>
+                  {showAmenityPanel === hotel.hotel_id && (
+                    <div style={styles.amenityPanel}>
+                      <p style={styles.panelLabel}>Select amenities to add:</p>
+                      <div style={styles.amenitiesGrid}>
+                        {allAmenities
+                          .filter(a => !(hotelAmenities[hotel.hotel_id] || []).find(ha => ha.amenity_id === a.amenity_id))
+                          .map(a => (
+                            <button key={a.amenity_id} onClick={() => handleAddAmenity(hotel.hotel_id, a.amenity_id)}
+                              style={styles.addAmenityBtn}>+ {a.name}</button>
+                          ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
 
-                {rooms[hotel.hotel_id]?.length === 0 ? (
-                  <p style={styles.empty}>No room types yet.</p>
-                ) : (
-                  <table style={styles.table}>
-                    <thead>
-                      <tr>{['Type', 'Bed', 'Max Guests', 'Rooms', 'Price/Night', 'Size', 'Available'].map(h => (
-                        <th key={h} style={styles.th}>{h}</th>
-                      ))}</tr>
-                    </thead>
-                    <tbody>
-                      {rooms[hotel.hotel_id]?.map(room => (
-                        <tr key={room.room_type_id} style={styles.tr}>
-                          <td style={styles.td}>{room.type_name}</td>
-                          <td style={styles.td}>{room.bed_type}</td>
-                          <td style={styles.td}>{room.max_occupancy}</td>
-                          <td style={styles.td}>{room.total_rooms}</td>
-                          <td style={styles.td}>${room.base_price_per_night}</td>
-                          <td style={styles.td}>{room.size_sqft} sqft</td>
-                          <td style={styles.td}>{room.is_available ? '✅' : '❌'}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                )}
+                {/* ROOMS */}
+                <div style={styles.sectionBlock}>
+                  <div style={styles.roomsHeader}>
+                    <h4 style={styles.roomsTitle}>Room Types</h4>
+                    <button onClick={() => setShowRoomForm(showRoomForm === hotel.hotel_id ? null : hotel.hotel_id)}
+                      style={styles.addRoomBtn}>
+                      {showRoomForm === hotel.hotel_id ? 'Cancel' : '+ Add Room Type'}
+                    </button>
+                  </div>
+
+                  {showRoomForm === hotel.hotel_id && (
+                    <div style={styles.roomFormCard}>
+                      <div style={styles.formGrid}>
+                        {[
+                          ['type_name', 'Room Type Name', 'text'],
+                          ['bed_type', 'Bed Type', 'text'],
+                          ['max_occupancy', 'Max Occupancy', 'number'],
+                          ['total_rooms', 'Total Rooms', 'number'],
+                          ['base_price_per_night', 'Price/Night ($)', 'number'],
+                          ['size_sqft', 'Size (sqft)', 'number'],
+                        ].map(([key, label, type]) => (
+                          <div key={key}>
+                            <label style={styles.label}>{label}</label>
+                            <input style={styles.input} type={type} value={roomForm[key]}
+                              onChange={e => setRoomForm({...roomForm, [key]: e.target.value})} />
+                          </div>
+                        ))}
+                      </div>
+                      <label style={styles.label}>Description</label>
+                      <textarea style={styles.textarea} rows={2} value={roomForm.description}
+                        onChange={e => setRoomForm({...roomForm, description: e.target.value})} />
+                      <button onClick={() => handleCreateRoom(hotel.hotel_id)} style={styles.submitBtn}>
+                        Add Room Type
+                      </button>
+                    </div>
+                  )}
+
+                  {rooms[hotel.hotel_id]?.length === 0 ? (
+                    <p style={styles.empty}>No room types yet.</p>
+                  ) : (
+                    <>
+                      <table style={styles.table}>
+                        <thead>
+                          <tr>{['Type', 'Bed', 'Max Guests', 'Rooms', 'Price/Night', 'Size', 'Available', 'Defects'].map(h => (
+                            <th key={h} style={styles.th}>{h}</th>
+                          ))}</tr>
+                        </thead>
+                        <tbody>
+                          {rooms[hotel.hotel_id]?.map(room => (
+                            <tr key={room.room_type_id} style={styles.tr}>
+                              <td style={styles.td}>{room.type_name}</td>
+                              <td style={styles.td}>{room.bed_type}</td>
+                              <td style={styles.td}>{room.max_occupancy}</td>
+                              <td style={styles.td}>{room.total_rooms}</td>
+                              <td style={styles.td}>${room.base_price_per_night}</td>
+                              <td style={styles.td}>{room.size_sqft} sqft</td>
+                              <td style={styles.td}>{room.is_available ? '✅' : '❌'}</td>
+                              <td style={styles.td}>
+                                <button onClick={() => toggleRoom(room.room_type_id)} style={styles.expandBtn}>
+                                  {expandedRoom === room.room_type_id ? 'Hide ▲' : 'View ▼'}
+                                </button>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+
+                      {/* DEFECTS PANEL */}
+                      {expandedRoom && rooms[hotel.hotel_id]?.find(r => r.room_type_id === expandedRoom) && (
+                        <div style={styles.defectsPanel}>
+                          <h4 style={styles.roomsTitle}>
+                            Defects — {rooms[hotel.hotel_id].find(r => r.room_type_id === expandedRoom)?.type_name}
+                          </h4>
+                          {!defects[expandedRoom] ? <p>Loading...</p> :
+                            defects[expandedRoom].length === 0 ? <p style={styles.empty}>No active defects.</p> : (
+                              defects[expandedRoom].map(d => (
+                                <div key={d.defect_id} style={styles.defectRow}>
+                                  <div style={styles.defectLeft}>
+                                    <strong>{d.title}</strong>
+                                    {d.description && <p style={styles.defectDesc}>{d.description}</p>}
+                                  </div>
+                                  <div style={styles.defectRight}>
+                                    <span style={{...styles.badge, background: d.severity === 'CRITICAL' ? '#e94560' : d.severity === 'HIGH' ? '#ff6b35' : '#888'}}>
+                                      {d.severity}
+                                    </span>
+                                    <span style={{...styles.badge, background: d.status === 'OPEN' ? '#dc3545' : '#ffc107', color: d.status === 'IN_PROGRESS' ? '#000' : '#fff'}}>
+                                      {d.status}
+                                    </span>
+                                  </div>
+                                </div>
+                              ))
+                            )
+                          }
+                        </div>
+                      )}
+                    </>
+                  )}
+                </div>
               </div>
             )}
           </div>
@@ -247,6 +380,7 @@ const styles = {
   expandBtn: { padding:'7px 14px', background:'#f0f2f5', border:'none', borderRadius:'6px', cursor:'pointer', fontSize:'13px' },
   deleteBtn: { padding:'7px 14px', background:'#e94560', color:'#fff', border:'none', borderRadius:'6px', cursor:'pointer', fontSize:'13px' },
   roomsSection: { marginTop:'16px', paddingTop:'16px', borderTop:'1px solid #f0f0f0' },
+  sectionBlock: { marginBottom:'20px' },
   roomsHeader: { display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'12px' },
   roomsTitle: { margin:0, fontSize:'15px', fontWeight:'600', color:'#1a1a2e' },
   addRoomBtn: { padding:'6px 14px', background:'#1a1a2e', color:'#fff', border:'none', borderRadius:'6px', cursor:'pointer', fontSize:'13px' },
@@ -254,7 +388,20 @@ const styles = {
   table: { width:'100%', borderCollapse:'collapse' },
   th: { background:'#f8f9fa', padding:'10px 12px', textAlign:'left', fontSize:'12px', fontWeight:'600', color:'#888', textTransform:'uppercase' },
   tr: { borderBottom:'1px solid #f0f0f0' },
-  td: { padding:'10px 12px', fontSize:'13px', color:'#333' }
+  td: { padding:'10px 12px', fontSize:'13px', color:'#333' },
+  amenitiesGrid: { display:'flex', flexWrap:'wrap', gap:'8px', marginBottom:'12px' },
+  amenityTag: { padding:'5px 10px', background:'#f0f4ff', border:'1px solid #c0d0ff', borderRadius:'20px', fontSize:'13px', color:'#1a1a2e', display:'flex', alignItems:'center', gap:'6px' },
+  removeAmenityBtn: { background:'none', border:'none', color:'#e94560', cursor:'pointer', fontSize:'16px', lineHeight:1, padding:0, fontWeight:'700' },
+  amenityPanel: { background:'#f8f9fa', borderRadius:'8px', padding:'14px', marginBottom:'12px' },
+  panelLabel: { fontSize:'12px', fontWeight:'600', color:'#888', textTransform:'uppercase', marginBottom:'10px' },
+  addAmenityBtn: { padding:'5px 12px', background:'#fff', border:'1px solid #1a1a2e', borderRadius:'20px', fontSize:'13px', color:'#1a1a2e', cursor:'pointer' },
+  // NEW defect styles
+  defectsPanel: { marginTop:'12px', background:'#f8f9fa', borderRadius:'8px', padding:'16px' },
+  defectRow: { display:'flex', justifyContent:'space-between', alignItems:'flex-start', padding:'10px 0', borderBottom:'1px solid #eee' },
+  defectLeft: { flex:1 },
+  defectDesc: { color:'#666', fontSize:'12px', margin:'4px 0 0' },
+  defectRight: { display:'flex', gap:'6px', flexShrink:0 },
+  badge: { padding:'3px 10px', borderRadius:'12px', fontSize:'11px', fontWeight:'600', color:'#fff' },
 };
 
 export default ManageListings;
